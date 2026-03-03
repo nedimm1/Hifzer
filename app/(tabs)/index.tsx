@@ -1,98 +1,142 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import quranMetaData from '@kmaslesa/quran-metadata';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, FlatList, StyleSheet, Dimensions } from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import PageSelectModal from '../../components/PageSelectModal';
+import SuraButton from '../../components/SuraButton';
+import { SearchBar } from '../../components/ui/SearchBar';
+import { spacing } from '../../constants/spacing';
+import { RootState } from '../../store';
 
-export default function HomeScreen() {
+const { height } = Dimensions.get('screen');
+
+interface Sura {
+  index: number;
+  numberOfAyas: number;
+  name: {
+    arabic: string;
+    english: string;
+    englishTranscription: string;
+    bosnian: string;
+    bosnianTranscription: string;
+  };
+  startPage: number;
+  endPage: number;
+  totalPages: number;
+  type: string;
+}
+
+const SuraList = memo(
+  ({
+    surahList,
+    setSelectedSura,
+    suraSearch,
+  }: {
+    surahList: Sura[];
+    setSelectedSura: (sura: Sura) => void;
+    suraSearch: string;
+  }) => {
+    const router = useRouter();
+
+    const filteredList = useMemo(() => {
+      if (!suraSearch) return surahList;
+      return surahList.filter(
+        (sura) =>
+          String(sura.index).includes(suraSearch) ||
+          sura.name.bosnianTranscription
+            .toLowerCase()
+            .includes(suraSearch.toLowerCase()) ||
+          sura.name.englishTranscription
+            .toLowerCase()
+            .includes(suraSearch.toLowerCase())
+      );
+    }, [surahList, suraSearch]);
+
+    return (
+      <FlatList
+        data={filteredList}
+        keyExtractor={(item) => `suraId:${item.index}`}
+        initialNumToRender={20}
+        keyboardShouldPersistTaps="handled"
+        renderItem={({ item: sura }) => (
+          <SuraButton
+            sura={sura}
+            setSelectedSura={setSelectedSura}
+            onPageSelect={(page) =>
+              router.push({
+                pathname: '/quran-pages',
+                params: { page },
+              })
+            }
+          />
+        )}
+        contentContainerStyle={{
+          paddingBottom: 250,
+        }}
+      />
+    );
+  }
+);
+
+export default function QuranPageSelectScreen() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const { colors } = useSelector((state: RootState) => state.config);
+  const [selectedSura, setSelectedSura] = useState<Sura | null>(null);
+  const [suraSearch, setSuraSearch] = useState('');
+
+  const surahList = useMemo(() => {
+    return quranMetaData.getSuraList();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSuraSearch('');
+    }, [])
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View
+      style={{
+        padding: spacing.xl,
+        paddingTop: 60,
+        paddingBottom: spacing.xxxl,
+        minHeight: height,
+        backgroundColor: colors.bgPrimary,
+      }}
+    >
+      <SearchBar
+        value={suraSearch}
+        onChangeText={(text) => setSuraSearch(text)}
+        placeholder={t('search')}
+        style={styles.searchBar}
+      />
+      <SuraList
+        surahList={surahList}
+        setSelectedSura={setSelectedSura}
+        suraSearch={suraSearch}
+      />
+      {selectedSura && (
+        <PageSelectModal
+          selectedSura={selectedSura}
+          closeModal={() => setSelectedSura(null)}
+          onPageSelect={(page) =>
+            router.push({
+              pathname: '/quran-pages',
+              params: { page },
+            })
+          }
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  searchBar: {
+    marginBottom: spacing.lg,
   },
 });
