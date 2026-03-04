@@ -2,13 +2,20 @@ import quranMetaData from '@kmaslesa/quran-metadata';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, FlatList, StyleSheet, Dimensions } from 'react-native';
+import {
+  View,
+  FlatList,
+  TextInput,
+  StyleSheet,
+  Dimensions,
+  Platform,
+} from 'react-native';
+import { moderateScale } from 'react-native-size-matters';
+import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 
 import PageSelectModal from '../../components/PageSelectModal';
 import SuraButton from '../../components/SuraButton';
-import { SearchBar } from '../../components/ui/SearchBar';
-import { spacing } from '../../constants/spacing';
 import { RootState } from '../../store';
 
 const { height } = Dimensions.get('screen');
@@ -41,47 +48,45 @@ const SuraList = memo(
   }) => {
     const router = useRouter();
 
-    const filteredList = useMemo(() => {
-      if (!suraSearch) return surahList;
-      return surahList.filter(
-        (sura) =>
-          String(sura.index).includes(suraSearch) ||
-          sura.name.bosnianTranscription
-            .toLowerCase()
-            .includes(suraSearch.toLowerCase()) ||
-          sura.name.englishTranscription
-            .toLowerCase()
-            .includes(suraSearch.toLowerCase())
-      );
-    }, [surahList, suraSearch]);
-
     return (
       <FlatList
-        data={filteredList}
+        data={surahList}
         keyExtractor={(item) => `suraId:${item.index}`}
-        initialNumToRender={20}
+        initialNumToRender={114}
         keyboardShouldPersistTaps="handled"
-        renderItem={({ item: sura }) => (
-          <SuraButton
-            sura={sura}
-            setSelectedSura={setSelectedSura}
-            onPageSelect={(page) =>
-              router.push({
-                pathname: '/quran-pages',
-                params: { page },
-              })
-            }
-          />
-        )}
-        contentContainerStyle={{
-          paddingBottom: 250,
+        renderItem={({ item: sura }) => {
+          if (
+            String(sura.index).includes(suraSearch) ||
+            sura.name.bosnianTranscription
+              .toLowerCase()
+              .includes(suraSearch.toLowerCase()) ||
+            sura.name.englishTranscription
+              .toLowerCase()
+              .includes(suraSearch.toLowerCase())
+          ) {
+            return (
+              <SuraButton
+                key={`surabutton:${sura.index}`}
+                sura={sura}
+                setSelectedSura={setSelectedSura}
+                onPageSelect={(page) =>
+                  router.push({
+                    pathname: '/quran-pages',
+                    params: { page },
+                  })
+                }
+              />
+            );
+          } else {
+            return null;
+          }
         }}
       />
     );
   }
 );
 
-export default function QuranPageSelectScreen() {
+const PageSelect = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
@@ -101,42 +106,75 @@ export default function QuranPageSelectScreen() {
   return (
     <View
       style={{
-        padding: spacing.xl,
-        paddingTop: 60,
-        paddingBottom: spacing.xxxl,
-        minHeight: height,
+        padding: 20,
+        paddingBottom: 50,
         backgroundColor: colors.bgPrimary,
+        height:
+          height -
+          (Platform.OS === 'ios' ? (height > 800 ? 120 : 40) : 120),
       }}
     >
-      <SearchBar
-        value={suraSearch}
-        onChangeText={(text) => setSuraSearch(text)}
-        placeholder={t('search')}
-        style={styles.searchBar}
-      />
-      <SuraList
-        surahList={surahList}
-        setSelectedSura={setSelectedSura}
-        suraSearch={suraSearch}
-      />
       {selectedSura && (
         <PageSelectModal
           selectedSura={selectedSura}
-          closeModal={() => setSelectedSura(null)}
           onPageSelect={(page) =>
             router.push({
               pathname: '/quran-pages',
               params: { page },
             })
           }
+          closeModal={() => setSelectedSura(null)}
         />
       )}
+      <View
+        style={{
+          paddingBottom: 100,
+          backgroundColor: colors.bgPrimary,
+        }}
+      >
+        <View style={{ position: 'relative' }}>
+          <TextInput
+            onChangeText={(value) => setSuraSearch(value)}
+            value={suraSearch}
+            placeholder={t('sura_search')}
+            style={[
+              styles.input,
+              {
+                color: colors.textPrimary,
+                borderColor: colors.accent,
+              },
+            ]}
+            placeholderTextColor={colors.textSecondary}
+            inputMode="search"
+          />
+          <Ionicons
+            name="search"
+            size={moderateScale(16, 0.2)}
+            color={colors.textSecondary}
+            style={{ position: 'absolute', left: 10, top: 21 }}
+          />
+        </View>
+        <SuraList
+          surahList={surahList}
+          setSelectedSura={setSelectedSura}
+          suraSearch={suraSearch}
+        />
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  searchBar: {
-    marginBottom: spacing.lg,
+  input: {
+    height: 50,
+    borderWidth: 1,
+    paddingHorizontal: moderateScale(32, 0.2),
+    paddingBottom: 0,
+    marginVertical: 5,
+    width: '100%',
+    fontSize: moderateScale(16, 0.2),
+    borderRadius: 10,
   },
 });
+
+export default memo(PageSelect);

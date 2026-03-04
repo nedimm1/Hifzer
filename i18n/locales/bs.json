@@ -1,9 +1,11 @@
 {
   "search": "Pretrazi suru...",
+  "sura_search": "Pretrazi suru...",
   "verses": "ajeta",
   "page": "Stranica",
   "pages": "Stranice",
   "selectPage": "Odaberi stranicu",
   "choose_page": "Odaberi stranicu",
+  "open_ayah": "Otvori ajet",
   "cancel": "Odustani"
 }

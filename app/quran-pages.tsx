@@ -1,18 +1,17 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 
 import { spacing } from '../constants/spacing';
 import { RootState } from '../store';
-import QuranPage from '../views/QuranPage';
+import QuranPages from '../views/QuranPages';
 
 export default function QuranPagesScreen() {
   const { page } = useLocalSearchParams<{ page: string }>();
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
-  const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
@@ -22,13 +21,7 @@ export default function QuranPagesScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <QuranPage
-          page={Number(page)}
-          selectedAyah={selectedAyah}
-          setSelectedAyah={setSelectedAyah}
-        />
-      </ScrollView>
+      <QuranPages route={{ params: { page: Number(page) } }} />
     </View>
   );
 }
@@ -43,11 +36,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: 50,
     paddingBottom: spacing.sm,
+    zIndex: 10,
   },
   backButton: {
     padding: spacing.sm,
-  },
-  scrollContent: {
-    flexGrow: 1,
   },
 });
