@@ -1,9 +1,16 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
+import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { moderateScale } from 'react-native-size-matters';
+import { Ionicons } from '@expo/vector-icons';
+import { useSelector } from 'react-redux';
 
-import { spacing } from '../constants/spacing';
+import {
+  borderRadius,
+  iconSize,
+  spacing,
+  typography,
+} from '../constants/spacing';
 import { RootState } from '../store';
 
 interface Sura {
@@ -33,102 +40,156 @@ const SuraButton: React.FC<SuraButtonProps> = ({
   setSelectedSura,
   onPageSelect,
 }) => {
-  const { t } = useTranslation();
   const { colors } = useSelector((state: RootState) => state.config);
-
-  const handlePress = () => {
-    if (sura.totalPages === 1) {
-      onPageSelect(sura.startPage);
-    } else {
-      setSelectedSura(sura);
-    }
-  };
+  const { t, i18n } = useTranslation();
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      activeOpacity={0.7}
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.bgSecondary,
-          borderColor: colors.border,
-        },
-      ]}
-    >
-      <View
+    <View style={styles.container}>
+      <TouchableOpacity
         style={[
-          styles.indexContainer,
-          { backgroundColor: colors.accent },
+          styles.mainButton,
+          {
+            backgroundColor: colors.bgSecondary,
+          },
         ]}
+        onPress={() => onPageSelect(sura.startPage)}
+        activeOpacity={0.7}
+        accessibilityLabel={`${sura.index}. ${i18n.language === 'bs' ? sura.name.bosnianTranscription : sura.name.englishTranscription}`}
+        accessibilityRole="button"
       >
-        <Text style={styles.indexText}>{sura.index}</Text>
-      </View>
-
-      <View style={styles.infoContainer}>
-        <Text
-          style={[styles.nameTranscription, { color: colors.textPrimary }]}
+        <View
+          style={[
+            styles.numberBadge,
+            { backgroundColor: colors.accent },
+          ]}
         >
-          {sura.name.englishTranscription}
-        </Text>
-        <Text style={[styles.nameEnglish, { color: colors.textSecondary }]}>
-          {sura.name.english}
-        </Text>
-        <Text style={[styles.details, { color: colors.textSecondary }]}>
-          {sura.numberOfAyas} {t('verses')} • {t('page')} {sura.startPage}
-          {sura.totalPages > 1 ? `-${sura.endPage}` : ''}
-        </Text>
-      </View>
-
-      <Text style={[styles.arabicName, { color: colors.textPrimary }]}>
-        {sura.name.arabic}
-      </Text>
-    </TouchableOpacity>
+          <Text
+            style={[
+              styles.numberText,
+              { color: '#FFFFFF' },
+            ]}
+          >
+            {sura.index}
+          </Text>
+        </View>
+        <View style={styles.textContent}>
+          <View style={styles.titleRow}>
+            <View style={styles.nameContainer}>
+              <Text
+                style={[
+                  styles.suraName,
+                  { color: colors.textPrimary },
+                ]}
+                numberOfLines={1}
+              >
+                {i18n.language === 'bs'
+                  ? sura.name.bosnianTranscription
+                  : sura.name.englishTranscription}
+              </Text>
+              <Text
+                style={[
+                  styles.pageInfo,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                {t('pages')}: {sura.startPage} - {sura.endPage}
+              </Text>
+            </View>
+            <Text
+              style={[
+                styles.arabicName,
+                { color: colors.accent },
+              ]}
+            >
+              {sura.name.arabic}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.selectButton,
+          {
+            backgroundColor: colors.accent,
+            borderColor: colors.accent,
+          },
+        ]}
+        onPress={() => setSelectedSura(sura)}
+        activeOpacity={0.7}
+        accessibilityLabel={t('choose_page')}
+        accessibilityRole="button"
+      >
+        <Ionicons
+          name="list"
+          size={iconSize.sm}
+          color="#FFFFFF"
+        />
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
+    width: '100%',
     marginBottom: spacing.sm,
-    borderRadius: 12,
-    borderWidth: 1,
   },
-  indexContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+  mainButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderTopLeftRadius: borderRadius.md,
+    borderBottomLeftRadius: borderRadius.md,
+    minHeight: 72,
+  },
+  numberBadge: {
+    width: moderateScale(36, 0.2),
+    height: moderateScale(36, 0.2),
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing.md,
   },
-  indexText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+  numberText: {
+    fontWeight: '700',
+    fontSize: typography.fontSize.md,
   },
-  infoContainer: {
+  textContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  nameContainer: {
     flex: 1,
   },
-  nameTranscription: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  nameEnglish: {
-    fontSize: 13,
-    marginBottom: 2,
-  },
-  details: {
-    fontSize: 12,
+  suraName: {
+    fontWeight: '700',
+    fontSize: typography.fontSize.md,
   },
   arabicName: {
-    fontSize: 22,
-    fontWeight: '500',
-    marginLeft: spacing.md,
+    fontSize: typography.fontSize.xl,
+    textAlign: 'right',
+  },
+  pageInfo: {
+    fontSize: typography.fontSize.sm,
+    opacity: 0.8,
+  },
+  selectButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    borderTopRightRadius: borderRadius.md,
+    borderBottomRightRadius: borderRadius.md,
+    borderLeftWidth: 2,
+    minHeight: 72,
   },
 });
 
-export default SuraButton;
+export default memo(SuraButton);
