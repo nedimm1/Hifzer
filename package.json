@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@kmaslesa/holy-quran-word-by-word-min": "^1.0.4",
     "@kmaslesa/quran-metadata": "^1.0.24",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",

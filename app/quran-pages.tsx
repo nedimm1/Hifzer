@@ -1,37 +1,34 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 
 import { spacing } from '../constants/spacing';
 import { RootState } from '../store';
+import QuranPage from '../views/QuranPage';
 
 export default function QuranPagesScreen() {
   const { page } = useLocalSearchParams<{ page: string }>();
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
+  const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.bgPrimary }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          Page {page}
-        </Text>
-        <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.content}>
-        <Text style={[styles.pageNumber, { color: colors.accent }]}>
-          {page}
-        </Text>
-        <Text style={[styles.placeholder_text, { color: colors.textSecondary }]}>
-          Quran page content will be displayed here
-        </Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <QuranPage
+          page={Number(page)}
+          selectedAyah={selectedAyah}
+          setSelectedAyah={setSelectedAyah}
+        />
+      </ScrollView>
     </View>
   );
 }
@@ -43,34 +40,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
-    paddingBottom: spacing.md,
+    paddingTop: 50,
+    paddingBottom: spacing.sm,
   },
   backButton: {
     padding: spacing.sm,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  pageNumber: {
-    fontSize: 72,
-    fontWeight: '700',
-    marginBottom: spacing.lg,
-  },
-  placeholder_text: {
-    fontSize: 16,
-    textAlign: 'center',
+  scrollContent: {
+    flexGrow: 1,
   },
 });
