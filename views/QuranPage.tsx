@@ -6,7 +6,6 @@ import {
   Text,
   Dimensions,
   StyleSheet,
-  Image,
   Platform,
   ActivityIndicator,
 } from 'react-native';
@@ -102,23 +101,24 @@ const QuranPage: React.FC<QuranPageProps> = ({
 
           {ayah.words?.length !== 0 &&
             ayah.words?.map((word, wordIndex) => {
+              const isSelected = selectedAyah === word?.ayahKey;
               return (
                 <Text
-                  style={{
-                    fontSize: moderateScale(22, 0.2),
-                    fontFamily: quranFonts[`p${page}`] ? `p${page}` : undefined,
-                    color:
-                      selectedAyah === word?.ayahKey
-                        ? colors.accent
-                        : colors.textPrimary,
-                  }}
                   key={`${word?.codeV1}-${wordIndex}`}
                   onPress={() => {
-                    if (selectedAyah === word?.ayahKey) {
+                    if (isSelected) {
                       setSelectedAyah(null);
                     } else {
                       setSelectedAyah(word?.ayahKey);
                     }
+                  }}
+                  style={{
+                    fontSize: moderateScale(22, 0.2),
+                    fontFamily: quranFonts[`p${page}`] ? `p${page}` : undefined,
+                    color: isSelected ? colors.accent : colors.textPrimary,
+                    backgroundColor: isSelected ? `${colors.accent}15` : 'transparent',
+                    borderRadius: 4,
+                    paddingHorizontal: 2,
                   }}
                 >
                   {word?.codeV1}

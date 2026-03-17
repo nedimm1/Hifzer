@@ -88,12 +88,20 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route }) => {
           <TouchableOpacity
             style={[
               styles.openButton,
-              { backgroundColor: colors.accent },
+              {
+                backgroundColor: colors.accent,
+                shadowColor: colors.shadow,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 8,
+              },
             ]}
             onPress={goToReadingPage}
+            activeOpacity={0.8}
           >
             <Text style={styles.buttonText}>
-              {t('open_ayah')}
+              {t('open_ayah')} ({selectedAyah})
             </Text>
           </TouchableOpacity>
         </View>
@@ -104,25 +112,29 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     position: 'relative',
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 10,
-    left: 0,
-    width: '100%',
+    bottom: 80,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
+    elevation: 1000,
   },
   openButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 12,
   },
   buttonText: {
     fontWeight: '700',
     color: '#FFFFFF',
+    fontSize: 16,
   },
 });
 

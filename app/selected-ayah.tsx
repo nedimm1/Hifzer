@@ -1,62 +1,56 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { View, Text, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 
 import { spacing } from '../constants/spacing';
 import { RootState } from '../store';
-
-const { width, height } = Dimensions.get('screen');
-
-interface SelectedAyah {
-  ayahKey: string;
-  // Add other properties as needed
-}
+import Reading from '../views/Reading';
 
 const SelectedAyahModal = () => {
   const router = useRouter();
   const params = useLocalSearchParams<{ selectedAyah: string }>();
   const { colors } = useSelector((state: RootState) => state.config);
 
-  const selectedAyah: SelectedAyah | null = params.selectedAyah
-    ? JSON.parse(params.selectedAyah)
+  // Parse the selectedAyah - it's a JSON-stringified string like "1:5"
+  const selectedAyahParam = params.selectedAyah;
+  console.log('selected-ayah.tsx - raw param:', selectedAyahParam);
+  const selectedAyah: string | null = selectedAyahParam
+    ? typeof selectedAyahParam === 'string'
+      ? JSON.parse(selectedAyahParam)
+      : selectedAyahParam
     : null;
+  console.log('selected-ayah.tsx - parsed:', selectedAyah);
+
+  const closeDialog = () => {
+    router.back();
+  };
 
   return (
-    <View
+    <SafeAreaView
       style={[
         styles.container,
         {
-          width,
-          height,
           backgroundColor: colors.bgPrimary,
         },
       ]}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+        <TouchableOpacity onPress={closeDialog} style={styles.closeButton}>
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          Ayah Details
-        </Text>
-        <View style={styles.placeholder} />
       </View>
 
       <View style={styles.content}>
         {selectedAyah ? (
-          <Text style={[styles.ayahKey, { color: colors.textPrimary }]}>
-            {selectedAyah.ayahKey}
-          </Text>
-        ) : (
-          <Text style={[styles.noAyah, { color: colors.textSecondary }]}>
-            No ayah selected
-          </Text>
-        )}
-        {/* TODO: Replace with Reading component */}
+          <Reading
+            selectedAyah={selectedAyah}
+            closeDialog={closeDialog}
+          />
+        ) : null}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -67,33 +61,23 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10000,
   },
   closeButton: {
     padding: spacing.sm,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  placeholder: {
-    width: 40,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 20,
   },
   content: {
     flex: 1,
-    padding: spacing.xl,
-  },
-  ayahKey: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  noAyah: {
-    fontSize: 16,
-    textAlign: 'center',
   },
 });
 
