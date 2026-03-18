@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 
 import { spacing } from '../constants/spacing';
 import { RootState } from '../store';
@@ -40,7 +41,7 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
   closeModal,
   onPageSelect,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useSelector((state: RootState) => state.config);
 
   const pages = Array.from(
@@ -53,6 +54,11 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
     onPageSelect(page);
   };
 
+  const suraName =
+    i18n.language === 'bs'
+      ? selectedSura.name.bosnianTranscription
+      : selectedSura.name.englishTranscription;
+
   return (
     <Modal
       visible={true}
@@ -62,26 +68,37 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
     >
       <Pressable style={styles.overlay} onPress={closeModal}>
         <Pressable
-          style={[
-            styles.modalContainer,
-            { backgroundColor: colors.bgPrimary },
-          ]}
+          style={[styles.modalContainer, { backgroundColor: colors.bgPrimary }]}
           onPress={(e) => e.stopPropagation()}
         >
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {selectedSura.name.englishTranscription}
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {t('selectPage')}
-            </Text>
+            <View style={styles.headerContent}>
+              <Text style={[styles.arabicTitle, { color: colors.accent }]}>
+                {selectedSura.name.arabic}
+              </Text>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                {suraName}
+              </Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                {t('selectPage')} ({selectedSura.totalPages} {t('pages').toLowerCase()})
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={closeModal}
+              style={[styles.closeButton, { backgroundColor: colors.bgSecondary }]}
+            >
+              <Ionicons name="close" size={20} color={colors.textPrimary} />
+            </TouchableOpacity>
           </View>
 
+          {/* Pages Grid */}
           <ScrollView
             style={styles.pagesContainer}
             contentContainerStyle={styles.pagesContent}
+            showsVerticalScrollIndicator={false}
           >
-            {pages.map((page) => (
+            {pages.map((page, index) => (
               <TouchableOpacity
                 key={page}
                 onPress={() => handlePageSelect(page)}
@@ -89,7 +106,6 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
                   styles.pageButton,
                   {
                     backgroundColor: colors.bgSecondary,
-                    borderColor: colors.border,
                   },
                 ]}
                 activeOpacity={0.7}
@@ -97,21 +113,14 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
                 <Text style={[styles.pageText, { color: colors.textPrimary }]}>
                   {page}
                 </Text>
+                {index === 0 && (
+                  <Text style={[styles.pageLabel, { color: colors.accent }]}>
+                    Start
+                  </Text>
+                )}
               </TouchableOpacity>
             ))}
           </ScrollView>
-
-          <TouchableOpacity
-            onPress={closeModal}
-            style={[
-              styles.cancelButton,
-              { borderColor: colors.border },
-            ]}
-          >
-            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
-              {t('cancel')}
-            </Text>
-          </TouchableOpacity>
         </Pressable>
       </Pressable>
     </Modal>
@@ -121,60 +130,70 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'flex-end',
   },
   modalContainer: {
-    width: '100%',
-    maxHeight: '70%',
-    borderRadius: 16,
-    padding: spacing.xl,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xxxl,
+    maxHeight: '75%',
   },
   header: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: spacing.lg,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  arabicTitle: {
+    fontSize: 28,
+    fontWeight: '500',
+    marginBottom: 4,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: 14,
+    marginTop: 4,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pagesContainer: {
-    maxHeight: 300,
+    maxHeight: 320,
   },
   pagesContent: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     gap: spacing.sm,
+    paddingBottom: spacing.md,
   },
   pageButton: {
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     borderRadius: 12,
-    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   pageText: {
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  cancelButton: {
-    marginTop: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  cancelText: {
-    fontSize: 16,
+  pageLabel: {
+    fontSize: 10,
     fontWeight: '500',
+    marginTop: 2,
   },
 });
 

@@ -1,10 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 
-import { spacing } from '../constants/spacing';
 import { RootState } from '../store';
 import QuranPages from '../views/QuranPages';
 
@@ -12,14 +12,29 @@ export default function QuranPagesScreen() {
   const { page } = useLocalSearchParams<{ page: string }>();
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-      <View style={[styles.header, { backgroundColor: colors.bgPrimary }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <StatusBar
+        barStyle={colors.style === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent
+      />
+
+      {/* Back Button - Positioned in safe area */}
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={[
+          styles.backButton,
+          {
+            top: insets.top + 8,
+            backgroundColor: colors.bgSecondary,
+          },
+        ]}
+      >
+        <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
+      </TouchableOpacity>
 
       <QuranPages route={{ params: { page: Number(page) } }} />
     </View>
@@ -30,15 +45,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: 50,
-    paddingBottom: spacing.sm,
-    zIndex: 10,
-  },
   backButton: {
-    padding: spacing.sm,
+    position: 'absolute',
+    left: 16,
+    zIndex: 100,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

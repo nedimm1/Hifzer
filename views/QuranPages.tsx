@@ -9,12 +9,14 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 
 import QuranPage from './QuranPage';
 import { RootState } from '../store';
+import { spacing } from '../constants/spacing';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface QuranPagesProps {
   route: {
@@ -53,15 +55,7 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route }) => {
   const pages = Array.from({ length: 604 }, (_, index) => index + 1);
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.bgPrimary,
-          marginTop: height > 800 ? 40 : -10,
-        },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       <FlatList
         viewabilityConfig={{
           itemVisiblePercentThreshold: 30,
@@ -83,26 +77,20 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route }) => {
         data={pages}
         renderItem={QuranPageRenderItem}
       />
+
+      {/* Selected Ayah Button */}
       {selectedAyah && (
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[
-              styles.openButton,
-              {
-                backgroundColor: colors.accent,
-                shadowColor: colors.shadow,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 8,
-              },
-            ]}
+            style={[styles.openButton, { backgroundColor: colors.accent }]}
             onPress={goToReadingPage}
             activeOpacity={0.8}
           >
+            <Ionicons name="book-outline" size={20} color="#FFFFFF" />
             <Text style={styles.buttonText}>
               {t('open_ayah')} ({selectedAyah})
             </Text>
+            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       )}
@@ -113,26 +101,30 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'relative',
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 80,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    bottom: 40,
+    left: spacing.xl,
+    right: spacing.xl,
     zIndex: 1000,
-    elevation: 1000,
   },
   openButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   buttonText: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#FFFFFF',
     fontSize: 16,
   },

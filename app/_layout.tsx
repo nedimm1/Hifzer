@@ -53,8 +53,7 @@ function AppContent() {
         <Stack.Screen
           name="quran-pages"
           options={{
-            presentation: 'card',
-            title: 'Quran',
+            headerShown: false,
           }}
         />
         <Stack.Screen

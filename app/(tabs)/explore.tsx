@@ -1,22 +1,39 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  ScrollView,
+  SafeAreaView,
+  StatusBar,
+} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
+import { Ionicons } from '@expo/vector-icons';
 
 import { spacing } from '../../constants/spacing';
 import { RootState } from '../../store';
-import { toggleDarkMode, setTheme, setTranslationLanguage, ThemeName, themeDisplayNames, themes, TranslationLanguage } from '../../store/configSlice';
+import {
+  toggleDarkMode,
+  setTheme,
+  setTranslationLanguage,
+  ThemeName,
+  themeDisplayNames,
+  themes,
+  TranslationLanguage,
+} from '../../store/configSlice';
 import { translationLanguages } from '../../services/reading';
 
 const themeOrder: ThemeName[] = ['default', 'mecca', 'medina', 'palestine', 'alAqsa'];
-
 const translationLangOrder: TranslationLanguage[] = ['bs', 'en', 'tr', 'de', 'sq'];
 
 export default function SettingsScreen() {
-  const { colors, isDarkMode, themeName, translationLanguage } = useSelector((state: RootState) => state.config);
+  const { colors, isDarkMode, themeName, translationLanguage } = useSelector(
+    (state: RootState) => state.config
+  );
   const dispatch = useDispatch();
-  const { t } = useTranslation();
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -31,277 +48,328 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-      <Text style={[styles.title, { color: colors.textPrimary }]}>Settings</Text>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bgPrimary }]}>
+      <StatusBar
+        barStyle={colors.style === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.bgPrimary}
+      />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            Settings
+          </Text>
+        </View>
 
-      {/* Theme Section */}
-      <View style={[styles.section, { borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          Theme
-        </Text>
-        <View style={styles.themeGrid}>
-          {themeOrder.map((theme) => {
-            const isSelected = themeName === theme;
-            const themeColors = themes[theme][isDarkMode ? 'dark' : 'light'];
+        {/* Appearance Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            APPEARANCE
+          </Text>
 
-            return (
-              <TouchableOpacity
-                key={theme}
-                style={[
-                  styles.themeCard,
-                  {
-                    backgroundColor: themeColors.bgSecondary,
-                    borderColor: isSelected ? themeColors.accent : colors.border,
-                    borderWidth: isSelected ? 2 : 1,
-                  },
-                ]}
-                onPress={() => handleThemeChange(theme)}
-                activeOpacity={0.7}
-              >
-                {/* Color Preview */}
-                <View style={styles.colorPreview}>
-                  <View
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: themeColors.accent },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: themeColors.bgPrimary },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: themeColors.textPrimary },
-                    ]}
+          {/* Dark Mode Toggle */}
+          <View
+            style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
+          >
+            <View style={styles.settingRow}>
+              <View style={styles.settingLeft}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: colors.accent }]}
+                >
+                  <Ionicons
+                    name={isDarkMode ? 'moon' : 'sunny'}
+                    size={18}
+                    color="#FFFFFF"
                   />
                 </View>
-                <Text
-                  style={[
-                    styles.themeName,
-                    {
-                      color: isSelected ? themeColors.accent : colors.textPrimary,
-                      fontWeight: isSelected ? '700' : '500',
-                    },
-                  ]}
-                >
-                  {themeDisplayNames[theme]}
+                <Text style={[styles.settingLabel, { color: colors.textPrimary }]}>
+                  Dark Mode
                 </Text>
-                {isSelected && (
-                  <View
+              </View>
+              <Switch
+                value={isDarkMode}
+                onValueChange={() => { dispatch(toggleDarkMode()); }}
+                trackColor={{ false: colors.border, true: colors.accent }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+
+          {/* Theme Selection */}
+          <View
+            style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
+          >
+            <Text style={[styles.cardLabel, { color: colors.textPrimary }]}>
+              Theme
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.themeScroll}
+            >
+              {themeOrder.map((theme) => {
+                const isSelected = themeName === theme;
+                const themeColors = themes[theme][isDarkMode ? 'dark' : 'light'];
+
+                return (
+                  <TouchableOpacity
+                    key={theme}
                     style={[
-                      styles.selectedIndicator,
-                      { backgroundColor: themeColors.accent },
+                      styles.themeCard,
+                      {
+                        backgroundColor: themeColors.bgPrimary,
+                        borderColor: isSelected
+                          ? themeColors.accent
+                          : colors.border,
+                        borderWidth: isSelected ? 2 : 1,
+                      },
                     ]}
-                  />
-                )}
-              </TouchableOpacity>
-            );
-          })}
+                    onPress={() => handleThemeChange(theme)}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[
+                        styles.themeAccent,
+                        { backgroundColor: themeColors.accent },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.themeName,
+                        { color: themeColors.textPrimary },
+                      ]}
+                    >
+                      {themeDisplayNames[theme]}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={16}
+                        color={themeColors.accent}
+                        style={styles.themeCheck}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
         </View>
-      </View>
 
-      {/* Appearance Section */}
-      <View style={[styles.section, { borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          Appearance
-        </Text>
-        <View style={styles.row}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Dark Mode
+        {/* Language Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            LANGUAGE
           </Text>
-          <Switch
-            value={isDarkMode}
-            onValueChange={() => { dispatch(toggleDarkMode()); }}
-            trackColor={{ false: colors.border, true: colors.accent }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
 
-      {/* App Language Section */}
-      <View style={[styles.section, { borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          App Language
-        </Text>
-        <View style={styles.languageButtons}>
-          <TouchableOpacity
-            style={[
-              styles.langButton,
-              {
-                backgroundColor:
-                  i18n.language === 'en' ? colors.accent : colors.bgSecondary,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => handleLanguageChange('en')}
+          {/* App Language */}
+          <View
+            style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
           >
-            <Text
-              style={[
-                styles.langButtonText,
-                { color: i18n.language === 'en' ? '#FFFFFF' : colors.textPrimary },
-              ]}
-            >
-              English
+            <Text style={[styles.cardLabel, { color: colors.textPrimary }]}>
+              App Language
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.langButton,
-              {
-                backgroundColor:
-                  i18n.language === 'bs' ? colors.accent : colors.bgSecondary,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => handleLanguageChange('bs')}
+            <View style={styles.buttonGroup}>
+              {[
+                { code: 'en', label: 'English' },
+                { code: 'bs', label: 'Bosanski' },
+              ].map((lang) => {
+                const isSelected = i18n.language === lang.code;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[
+                      styles.langButton,
+                      {
+                        backgroundColor: isSelected
+                          ? colors.accent
+                          : colors.bgPrimary,
+                        borderColor: isSelected ? colors.accent : colors.border,
+                      },
+                    ]}
+                    onPress={() => handleLanguageChange(lang.code)}
+                  >
+                    <Text
+                      style={[
+                        styles.langButtonText,
+                        { color: isSelected ? '#FFFFFF' : colors.textPrimary },
+                      ]}
+                    >
+                      {lang.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Translation Language */}
+          <View
+            style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
           >
-            <Text
-              style={[
-                styles.langButtonText,
-                { color: i18n.language === 'bs' ? '#FFFFFF' : colors.textPrimary },
-              ]}
-            >
-              Bosanski
+            <Text style={[styles.cardLabel, { color: colors.textPrimary }]}>
+              Quran Translation
             </Text>
-          </TouchableOpacity>
+            <View style={styles.translationGrid}>
+              {translationLangOrder.map((lang) => {
+                const isSelected = translationLanguage === lang;
+                const langInfo = translationLanguages[lang];
+
+                return (
+                  <TouchableOpacity
+                    key={lang}
+                    style={[
+                      styles.translationButton,
+                      {
+                        backgroundColor: isSelected
+                          ? colors.accent
+                          : colors.bgPrimary,
+                        borderColor: isSelected ? colors.accent : colors.border,
+                      },
+                    ]}
+                    onPress={() => handleTranslationLanguageChange(lang)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.translationNative,
+                        { color: isSelected ? '#FFFFFF' : colors.textPrimary },
+                      ]}
+                    >
+                      {langInfo.nativeName}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.translationName,
+                        {
+                          color: isSelected
+                            ? 'rgba(255,255,255,0.7)'
+                            : colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      {langInfo.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         </View>
-      </View>
 
-      {/* Translation Language Section */}
-      <View style={[styles.section, { borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          Quran Translation
-        </Text>
-        <View style={styles.translationGrid}>
-          {translationLangOrder.map((lang) => {
-            const isSelected = translationLanguage === lang;
-            const langInfo = translationLanguages[lang];
-
-            return (
-              <TouchableOpacity
-                key={lang}
-                style={[
-                  styles.translationButton,
-                  {
-                    backgroundColor: isSelected ? colors.accent : colors.bgSecondary,
-                    borderColor: isSelected ? colors.accent : colors.border,
-                  },
-                ]}
-                onPress={() => handleTranslationLanguageChange(lang)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.translationButtonText,
-                    { color: isSelected ? '#FFFFFF' : colors.textPrimary },
-                  ]}
-                >
-                  {langInfo.nativeName}
-                </Text>
-                <Text
-                  style={[
-                    styles.translationButtonSubtext,
-                    { color: isSelected ? 'rgba(255,255,255,0.7)' : colors.textSecondary },
-                  ]}
-                >
-                  {langInfo.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <View style={styles.footer} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    paddingTop: 60,
+  },
+  content: {
     paddingHorizontal: spacing.xl,
   },
+  header: {
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
-    marginBottom: spacing.xl,
+    letterSpacing: -0.5,
   },
   section: {
     marginBottom: spacing.xl,
-    paddingBottom: spacing.lg,
-    borderBottomWidth: 1,
   },
   sectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+  },
+  settingCard: {
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  settingLabel: {
     fontSize: 16,
+    fontWeight: '500',
+  },
+  cardLabel: {
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: spacing.md,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 16,
-  },
-  languageButtons: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  langButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  langButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  themeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
+  themeScroll: {
+    gap: spacing.sm,
+    paddingRight: spacing.md,
   },
   themeCard: {
-    width: '30%',
-    minWidth: 90,
-    aspectRatio: 1,
+    width: 80,
+    height: 80,
     borderRadius: 12,
     padding: spacing.sm,
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    justifyContent: 'flex-end',
   },
-  colorPreview: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: spacing.sm,
-  },
-  colorDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+  themeAccent: {
+    position: 'absolute',
+    top: spacing.sm,
+    left: spacing.sm,
+    right: spacing.sm,
+    height: 24,
+    borderRadius: 6,
   },
   themeName: {
-    fontSize: 12,
-    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '500',
   },
-  selectedIndicator: {
+  themeCheck: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 4,
+    right: 4,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  langButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  langButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   translationGrid: {
     flexDirection: 'row',
@@ -311,17 +379,20 @@ const styles = StyleSheet.create({
   translationButton: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    minWidth: 80,
+    minWidth: 90,
     alignItems: 'center',
   },
-  translationButtonText: {
+  translationNative: {
     fontSize: 14,
     fontWeight: '600',
   },
-  translationButtonSubtext: {
+  translationName: {
     fontSize: 10,
     marginTop: 2,
+  },
+  footer: {
+    height: 100,
   },
 });

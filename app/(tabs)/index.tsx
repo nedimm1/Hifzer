@@ -7,18 +7,17 @@ import {
   FlatList,
   TextInput,
   StyleSheet,
-  Dimensions,
-  Platform,
+  Text,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
-import { moderateScale } from 'react-native-size-matters';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 
 import PageSelectModal from '../../components/PageSelectModal';
 import SuraButton from '../../components/SuraButton';
 import { RootState } from '../../store';
-
-const { height } = Dimensions.get('screen');
+import { spacing } from '../../constants/spacing';
 
 interface Sura {
   index: number;
@@ -36,57 +35,64 @@ interface Sura {
   type: string;
 }
 
-const SuraList = memo(
-  ({
-    surahList,
-    setSelectedSura,
-    suraSearch,
-  }: {
-    surahList: Sura[];
-    setSelectedSura: (sura: Sura) => void;
-    suraSearch: string;
-  }) => {
-    const router = useRouter();
+const SuraList = memo(function SuraList({
+  surahList,
+  setSelectedSura,
+  suraSearch,
+}: {
+  surahList: Sura[];
+  setSelectedSura: (sura: Sura) => void;
+  suraSearch: string;
+}) {
+  const router = useRouter();
+  const { colors } = useSelector((state: RootState) => state.config);
 
-    return (
-      <FlatList
-        data={surahList}
-        keyExtractor={(item) => `suraId:${item.index}`}
-        initialNumToRender={114}
-        keyboardShouldPersistTaps="handled"
-        renderItem={({ item: sura }) => {
-          if (
-            String(sura.index).includes(suraSearch) ||
-            sura.name.bosnianTranscription
-              .toLowerCase()
-              .includes(suraSearch.toLowerCase()) ||
-            sura.name.englishTranscription
-              .toLowerCase()
-              .includes(suraSearch.toLowerCase())
-          ) {
-            return (
-              <SuraButton
-                key={`surabutton:${sura.index}`}
-                sura={sura}
-                setSelectedSura={setSelectedSura}
-                onPageSelect={(page) =>
-                  router.push({
-                    pathname: '/quran-pages',
-                    params: { page },
-                  })
-                }
-              />
-            );
-          } else {
-            return null;
-          }
-        }}
-      />
+  const filteredList = useMemo(() => {
+    if (!suraSearch) return surahList;
+    return surahList.filter(
+      (sura) =>
+        String(sura.index).includes(suraSearch) ||
+        sura.name.bosnianTranscription
+          .toLowerCase()
+          .includes(suraSearch.toLowerCase()) ||
+        sura.name.englishTranscription
+          .toLowerCase()
+          .includes(suraSearch.toLowerCase())
     );
-  }
-);
+  }, [surahList, suraSearch]);
 
-const PageSelect = () => {
+  return (
+    <FlatList
+      data={filteredList}
+      keyExtractor={(item) => `suraId:${item.index}`}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.listContent}
+      keyboardShouldPersistTaps="handled"
+      ListEmptyComponent={
+        <View style={styles.emptyState}>
+          <Ionicons name="search-outline" size={48} color={colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            No surahs found
+          </Text>
+        </View>
+      }
+      renderItem={({ item: sura }) => (
+        <SuraButton
+          sura={sura}
+          setSelectedSura={setSelectedSura}
+          onPageSelect={(page) =>
+            router.push({
+              pathname: '/quran-pages',
+              params: { page },
+            })
+          }
+        />
+      )}
+    />
+  );
+});
+
+const SurahListScreen = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
@@ -104,16 +110,12 @@ const PageSelect = () => {
   );
 
   return (
-    <View
-      style={{
-        padding: 20,
-        paddingBottom: 50,
-        backgroundColor: colors.bgPrimary,
-        height:
-          height -
-          (Platform.OS === 'ios' ? (height > 800 ? 120 : 40) : 120),
-      }}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <StatusBar
+        barStyle={colors.style === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.bgPrimary}
+      />
+
       {selectedSura && (
         <PageSelectModal
           selectedSura={selectedSura}
@@ -126,55 +128,118 @@ const PageSelect = () => {
           closeModal={() => setSelectedSura(null)}
         />
       )}
-      <View
-        style={{
-          paddingBottom: 100,
-          backgroundColor: colors.bgPrimary,
-        }}
-      >
-        <View style={{ position: 'relative' }}>
-          <TextInput
-            onChangeText={(value) => setSuraSearch(value)}
-            value={suraSearch}
-            placeholder={t('sura_search')}
-            style={[
-              styles.input,
-              {
-                color: colors.textPrimary,
-                borderColor: colors.accent,
-              },
-            ]}
-            placeholderTextColor={colors.textSecondary}
-            inputMode="search"
-          />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>
+          Quran
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          114 Surahs
+        </Text>
+      </View>
+
+      {/* Search */}
+      <View style={styles.searchContainer}>
+        <View
+          style={[
+            styles.searchBox,
+            {
+              backgroundColor: colors.bgSecondary,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <Ionicons
             name="search"
-            size={moderateScale(16, 0.2)}
+            size={20}
             color={colors.textSecondary}
-            style={{ position: 'absolute', left: 10, top: 21 }}
+            style={styles.searchIcon}
           />
+          <TextInput
+            onChangeText={setSuraSearch}
+            value={suraSearch}
+            placeholder={t('sura_search')}
+            style={[styles.searchInput, { color: colors.textPrimary }]}
+            placeholderTextColor={colors.textSecondary}
+            returnKeyType="search"
+          />
+          {suraSearch.length > 0 && (
+            <Ionicons
+              name="close-circle"
+              size={20}
+              color={colors.textSecondary}
+              onPress={() => setSuraSearch('')}
+              style={styles.clearIcon}
+            />
+          )}
         </View>
-        <SuraList
-          surahList={surahList}
-          setSelectedSura={setSelectedSura}
-          suraSearch={suraSearch}
-        />
       </View>
-    </View>
+
+      {/* Surah List */}
+      <SuraList
+        surahList={surahList}
+        setSelectedSura={setSelectedSura}
+        suraSearch={suraSearch}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  input: {
-    height: 50,
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  searchContainer: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: moderateScale(32, 0.2),
-    paddingBottom: 0,
-    marginVertical: 5,
-    width: '100%',
-    fontSize: moderateScale(16, 0.2),
-    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  searchIcon: {
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 0,
+  },
+  clearIcon: {
+    padding: spacing.xs,
+  },
+  listContent: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: 100,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    marginTop: spacing.md,
   },
 });
 
-export default memo(PageSelect);
+export default memo(SurahListScreen);
