@@ -5,6 +5,7 @@ import React, { memo, useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
+  ImageBackground,
   Dimensions,
   StyleSheet,
   ActivityIndicator,
@@ -13,6 +14,9 @@ import { useSelector } from 'react-redux';
 
 import { quranFonts } from '../data/quranFonts';
 import { RootState } from '../store';
+
+const surahTitleImage = require('../assets/images/surah_title.gif');
+const BISMILLAH = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
 
 const { width, height } = Dimensions.get('window');
 
@@ -39,76 +43,37 @@ interface QuranWords {
   ayahs?: LineData[];
 }
 
-// Decorative Surah Banner Component
-const SurahBanner: React.FC<{ name: string; accentColor: string }> = ({
-  name,
-  accentColor,
-}) => {
+// Decorative Surah Banner Component using surah_title.gif
+const SurahBanner: React.FC<{ name: string }> = ({ name }) => {
   return (
     <View style={surahBannerStyles.container}>
-      <View style={[surahBannerStyles.decorLeft, { backgroundColor: accentColor }]}>
-        <View style={[surahBannerStyles.decorInner, { borderColor: '#D4AF37' }]} />
-      </View>
-      <View style={[surahBannerStyles.banner, { backgroundColor: accentColor }]}>
-        <View style={surahBannerStyles.innerBorder}>
-          <Text style={surahBannerStyles.text}>{name}</Text>
-        </View>
-      </View>
-      <View style={[surahBannerStyles.decorRight, { backgroundColor: accentColor }]}>
-        <View style={[surahBannerStyles.decorInner, { borderColor: '#D4AF37' }]} />
-      </View>
+      <ImageBackground
+        source={surahTitleImage}
+        style={surahBannerStyles.imageBackground}
+        resizeMode="stretch"
+      >
+        <Text style={surahBannerStyles.text}>{name}</Text>
+      </ImageBackground>
     </View>
   );
 };
 
 const surahBannerStyles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 8,
     width: '100%',
-  },
-  decorLeft: {
-    width: 18,
-    height: 28,
-    borderTopLeftRadius: 5,
-    borderBottomLeftRadius: 5,
-    justifyContent: 'center',
     alignItems: 'center',
-  },
-  decorRight: {
-    width: 18,
-    height: 28,
-    borderTopRightRadius: 5,
-    borderBottomRightRadius: 5,
     justifyContent: 'center',
-    alignItems: 'center',
+    marginVertical: 6,
   },
-  decorInner: {
-    width: 8,
-    height: 16,
-    borderWidth: 1,
-    borderRadius: 2,
-  },
-  banner: {
-    flex: 1,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  innerBorder: {
-    flex: 1,
+  imageBackground: {
     width: '100%',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   text: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: '#000000',
+    fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -121,7 +86,21 @@ const QuranPage: React.FC<QuranPageProps> = ({
 }) => {
   const [quranWords, setQuranWords] = useState<QuranWords | undefined>();
   const [isLoading, setLoading] = useState(true);
+  const [arabicFontLoaded, setArabicFontLoaded] = useState(false);
   const { colors } = useSelector((state: RootState) => state.config);
+
+  // Load Arabic font for bismillah
+  useEffect(() => {
+    const loadArabicFont = async () => {
+      try {
+        await loadAsync({ Arabic: quranFonts.Arabic });
+        setArabicFontLoaded(true);
+      } catch {
+        setArabicFontLoaded(true);
+      }
+    };
+    loadArabicFont();
+  }, []);
 
   // Get page metadata
   const pageInfo = useMemo(() => {
@@ -214,69 +193,82 @@ const QuranPage: React.FC<QuranPageProps> = ({
 
       {/* Page Content */}
       <View style={styles.pageContent}>
+        {/* Render surah banners first (stick to top) */}
         {quranWords?.ayahs?.map((line, lineIndex) => {
-          // Surah Title Banner
           if (line.metaData?.lineType === 'start_sura') {
+            const surahName = line.metaData?.suraName || '';
+            const isFatiha = surahName.toLowerCase().includes('fatiha') ||
+                            surahName.toLowerCase().includes('faatiha') ||
+                            surahName.includes('الفاتحة');
+            const isTawbah = surahName.toLowerCase().includes('tawbah') ||
+                            surahName.toLowerCase().includes('tawba') ||
+                            surahName.includes('التوبة');
+
             return (
-              <SurahBanner
-                key={`surah-${lineIndex}`}
-                name={line.metaData?.suraName || ''}
-                accentColor={colors.accent}
-              />
+              <View key={`surah-${lineIndex}`}>
+                <SurahBanner name={surahName} />
+                {!isFatiha && !isTawbah && (
+                  <Text
+                    style={[
+                      styles.bismillahText,
+                      {
+                        color: colors.textPrimary,
+                        fontFamily: arabicFontLoaded ? 'Arabic' : undefined,
+                      },
+                    ]}
+                  >
+                    {BISMILLAH}
+                  </Text>
+                )}
+              </View>
             );
           }
-
-          // Bismillah
-          if (line.metaData?.lineType === 'besmellah') {
-            const text = line.words?.map((w) => w.codeV1).join('') || '';
-            return (
-              <Text
-                key={`bismillah-${lineIndex}`}
-                style={[
-                  styles.bismillahText,
-                  {
-                    color: colors.textPrimary,
-                    fontFamily: hasCustomFont ? fontKey : undefined,
-                  },
-                ]}
-              >
-                {text}
-              </Text>
-            );
-          }
-
-          // Regular line - render with nested Text for word-level selection
-          if (!line.words || line.words.length === 0) return null;
-
-          return (
-            <View key={`line-${lineIndex}`} style={styles.lineContainer}>
-              <Text
-                style={[
-                  styles.lineText,
-                  {
-                    fontFamily: hasCustomFont ? fontKey : undefined,
-                    color: colors.textPrimary,
-                  },
-                ]}
-              >
-                {line.words.map((word, wordIndex) => {
-                  const isWordSelected = selectedAyah === word.ayahKey;
-                  return (
-                    <Text
-                      key={`word-${lineIndex}-${wordIndex}`}
-                      onPress={() => {
-                        setSelectedAyah(isWordSelected ? null : word.ayahKey);
-                      }}
-                      style={isWordSelected ? { color: colors.accent } : undefined}
-                    >
-                      {word.codeV1}
-                    </Text>
-                  );
-                })}
-              </Text>
-            </View>
-          );
+          return null;
         })}
+
+        {/* Verses container - centered for pages 1 and 2 */}
+        <View style={[
+          styles.versesContainer,
+          (page === 1 || page === 2) && styles.versesContainerCentered
+        ]}>
+          {quranWords?.ayahs?.map((line, lineIndex) => {
+            // Skip surah banners and bismillah (already rendered above)
+            if (line.metaData?.lineType === 'start_sura') return null;
+            if (line.metaData?.lineType === 'besmellah') return null;
+
+            // Regular line - render with nested Text for word-level selection
+            if (!line.words || line.words.length === 0) return null;
+
+            return (
+              <View key={`line-${lineIndex}`} style={styles.lineContainer}>
+                <Text
+                  style={[
+                    styles.lineText,
+                    {
+                      fontFamily: hasCustomFont ? fontKey : undefined,
+                      color: colors.textPrimary,
+                    },
+                  ]}
+                >
+                  {line.words.map((word, wordIndex) => {
+                    const isWordSelected = selectedAyah === word.ayahKey;
+                    return (
+                      <Text
+                        key={`word-${lineIndex}-${wordIndex}`}
+                        onPress={() => {
+                          setSelectedAyah(isWordSelected ? null : word.ayahKey);
+                        }}
+                        style={isWordSelected ? { color: colors.accent } : undefined}
+                      >
+                        {word.codeV1}
+                      </Text>
+                    );
+                  })}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       </View>
 
       {/* Page Number */}
@@ -316,8 +308,14 @@ const styles = StyleSheet.create({
   },
   pageContent: {
     flex: 1,
-    justifyContent: 'space-between',
     paddingVertical: 4,
+  },
+  versesContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  versesContainerCentered: {
+    justifyContent: 'center',
   },
   bismillahText: {
     fontSize: 22,
