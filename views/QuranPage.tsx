@@ -13,7 +13,23 @@ import {
 import { useSelector } from 'react-redux';
 
 import { quranFonts } from '../data/quranFonts';
+import chapters from '../data/chapters.json';
 import { RootState } from '../store';
+
+// Helper to get surah info by page number
+const getSurahByPage = (pageNum: number) => {
+  for (let i = 0; i < chapters.length; i++) {
+    const chapter = chapters[i];
+    const startPage = parseInt(chapter.pages, 10);
+    const nextChapter = chapters[i + 1];
+    const endPage = nextChapter ? parseInt(nextChapter.pages, 10) - 1 : 604;
+
+    if (pageNum >= startPage && pageNum <= endPage) {
+      return chapter.titleAr;
+    }
+  }
+  return '';
+};
 
 const surahTitleImage = require('../assets/images/surah_title.gif');
 const BISMILLAH = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
@@ -104,33 +120,21 @@ const QuranPage: React.FC<QuranPageProps> = ({
 
   // Get page metadata
   const pageInfo = useMemo(() => {
+    const suraName = getSurahByPage(page);
+
+    let juzNumber = Math.ceil(page / 20);
     try {
-      const suraData = quranMetaData.getSuraByPageNumber(page) as unknown as Record<string, unknown> | null;
-      const juzData = quranMetaData.getJuzByPageNumber(page) as unknown as Record<string, unknown> | number | null;
-
-      // Handle different possible return structures
-      let suraName = '';
-      if (suraData && typeof suraData === 'object') {
-        const nameObj = suraData.name as Record<string, string> | undefined;
-        suraName = nameObj?.englishTranscription ||
-                   (suraData.englishTranscription as string) ||
-                   nameObj?.english ||
-                   '';
+      const juzData = quranMetaData.getJuzByPageNumber(page) as any;
+      if (typeof juzData === 'number') {
+        juzNumber = juzData;
+      } else if (juzData && typeof juzData === 'object') {
+        juzNumber = juzData.index || juzData.juz || Math.ceil(page / 20);
       }
-
-      let juzNumber = Math.ceil(page / 20);
-      if (juzData) {
-        if (typeof juzData === 'number') {
-          juzNumber = juzData;
-        } else if (typeof juzData === 'object') {
-          juzNumber = (juzData.index as number) || (juzData.juz as number) || Math.ceil(page / 20);
-        }
-      }
-
-      return { suraName, juzNumber };
     } catch {
-      return { suraName: '', juzNumber: Math.ceil(page / 20) };
+      // Use calculated juz number
     }
+
+    return { suraName, juzNumber };
   }, [page]);
 
   const getQuranWordsforPage = useCallback(async () => {
@@ -153,20 +157,25 @@ const QuranPage: React.FC<QuranPageProps> = ({
     getQuranWordsforPage();
   }, [getQuranWordsforPage]);
 
-  // Extract surah name from page data if not available from metadata
+  // Get the first surah that appears on this page
   const displaySuraName = useMemo(() => {
-    if (pageInfo.suraName) return pageInfo.suraName;
-
-    // Try to find it from the first start_sura line
-    const startSuraLine = quranWords?.ayahs?.find(
+    // First check if there's a start_sura on this page
+    const firstSurahLine = quranWords?.ayahs?.find(
       (line) => line.metaData?.lineType === 'start_sura'
     );
-    if (startSuraLine?.metaData?.suraName) {
-      return startSuraLine.metaData.suraName;
+    if (firstSurahLine?.metaData?.suraName) {
+      // Find Arabic name from chapters.json
+      const chapter = chapters.find(
+        (ch) => ch.title.toLowerCase() === firstSurahLine.metaData?.suraName?.toLowerCase().replace('al-', 'al-').replace(/[-\s]/g, '')
+          || firstSurahLine.metaData?.suraName?.includes(ch.title)
+          || ch.title.includes(firstSurahLine.metaData?.suraName || '')
+      );
+      if (chapter) return chapter.titleAr;
+      return firstSurahLine.metaData.suraName;
     }
-
-    return '';
-  }, [pageInfo.suraName, quranWords]);
+    // Fallback to the surah this page belongs to
+    return pageInfo.suraName;
+  }, [quranWords, pageInfo.suraName]);
 
   const fontKey = `p${page}`;
   const hasCustomFont = !!quranFonts[fontKey];
@@ -184,61 +193,50 @@ const QuranPage: React.FC<QuranPageProps> = ({
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.headerText, { color: colors.textSecondary }]}>
-          {displaySuraName ? displaySuraName : `Page ${page}`}
+          {displaySuraName || `${page}`}
         </Text>
         <Text style={[styles.headerText, { color: colors.textSecondary }]}>
-          Juz {pageInfo.juzNumber}
+          Juz' {pageInfo.juzNumber}
         </Text>
       </View>
 
-      {/* Page Content */}
-      <View style={styles.pageContent}>
-        {/* Render surah banners first (stick to top) */}
+      {/* Page Content - Single pass rendering */}
+      <View style={[
+        styles.pageContent,
+        (page === 1 || page === 2) && styles.pageContentCentered
+      ]}>
         {quranWords?.ayahs?.map((line, lineIndex) => {
+          // Surah Banner
           if (line.metaData?.lineType === 'start_sura') {
             const surahName = line.metaData?.suraName || '';
-            const isFatiha = surahName.toLowerCase().includes('fatiha') ||
-                            surahName.toLowerCase().includes('faatiha') ||
-                            surahName.includes('الفاتحة');
-            const isTawbah = surahName.toLowerCase().includes('tawbah') ||
-                            surahName.toLowerCase().includes('tawba') ||
-                            surahName.includes('التوبة');
-
             return (
-              <View key={`surah-${lineIndex}`}>
+              <View key={`line-${lineIndex}`}>
                 <SurahBanner name={surahName} />
-                {!isFatiha && !isTawbah && (
-                  <Text
-                    style={[
-                      styles.bismillahText,
-                      {
-                        color: colors.textPrimary,
-                        fontFamily: arabicFontLoaded ? 'Arabic' : undefined,
-                      },
-                    ]}
-                  >
-                    {BISMILLAH}
-                  </Text>
-                )}
               </View>
             );
           }
-          return null;
-        })}
 
-        {/* Verses container - centered for pages 1 and 2 */}
-        <View style={[
-          styles.versesContainer,
-          (page === 1 || page === 2) && styles.versesContainerCentered
-        ]}>
-          {quranWords?.ayahs?.map((line, lineIndex) => {
-            // Skip surah banners and bismillah (already rendered above)
-            if (line.metaData?.lineType === 'start_sura') return null;
-            if (line.metaData?.lineType === 'besmellah') return null;
+          // Bismillah
+          if (line.metaData?.lineType === 'besmellah') {
+            return (
+              <View key={`line-${lineIndex}`} style={styles.bismillahContainer}>
+                <Text
+                  style={[
+                    styles.bismillahText,
+                    {
+                      color: colors.textPrimary,
+                      fontFamily: arabicFontLoaded ? 'Arabic' : undefined,
+                    },
+                  ]}
+                >
+                  {BISMILLAH}
+                </Text>
+              </View>
+            );
+          }
 
-            // Regular line - render with nested Text for word-level selection
-            if (!line.words || line.words.length === 0) return null;
-
+          // Verse line
+          if (line.words && line.words.length > 0) {
             return (
               <View key={`line-${lineIndex}`} style={styles.lineContainer}>
                 <Text
@@ -267,8 +265,10 @@ const QuranPage: React.FC<QuranPageProps> = ({
                 </Text>
               </View>
             );
-          })}
-        </View>
+          }
+
+          return null;
+        })}
       </View>
 
       {/* Page Number */}
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   container: {
     width,
     height,
-    paddingTop: 50,
+    paddingTop: 70,
     paddingBottom: 10,
     paddingHorizontal: 8,
   },
@@ -310,12 +310,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 4,
   },
-  versesContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  versesContainerCentered: {
+  pageContentCentered: {
     justifyContent: 'center',
+  },
+  bismillahContainer: {
+    width: '100%',
+    alignItems: 'center',
   },
   bismillahText: {
     fontSize: 22,
