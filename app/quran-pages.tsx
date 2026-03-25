@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity, StatusBar, BackHandler } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,22 @@ export default function QuranPagesScreen() {
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
   const insets = useSafeAreaInsets();
+  const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
+
+  const handleBackPress = useCallback(() => {
+    if (selectedAyah) {
+      // If an ayah is selected, unselect it first
+      setSelectedAyah(null);
+      return true; // Prevent default back behavior
+    }
+    return false; // Allow default back behavior
+  }, [selectedAyah]);
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => backHandler.remove();
+  }, [handleBackPress]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
@@ -36,7 +52,11 @@ export default function QuranPagesScreen() {
         <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
       </TouchableOpacity>
 
-      <QuranPages route={{ params: { page: Number(page) } }} />
+      <QuranPages
+        route={{ params: { page: Number(page) } }}
+        selectedAyah={selectedAyah}
+        setSelectedAyah={setSelectedAyah}
+      />
     </View>
   );
 }

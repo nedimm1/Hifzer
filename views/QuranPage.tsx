@@ -1,7 +1,6 @@
-import quranMetaData from '@kmaslesa/quran-metadata';
 import quranWordsNpm from '@kmaslesa/holy-quran-word-by-word-min';
 import { loadAsync } from 'expo-font';
-import React, { memo, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,23 +12,7 @@ import {
 import { useSelector } from 'react-redux';
 
 import { quranFonts } from '../data/quranFonts';
-import chapters from '../data/chapters.json';
 import { RootState } from '../store';
-
-// Helper to get surah info by page number
-const getSurahByPage = (pageNum: number) => {
-  for (let i = 0; i < chapters.length; i++) {
-    const chapter = chapters[i];
-    const startPage = parseInt(chapter.pages, 10);
-    const nextChapter = chapters[i + 1];
-    const endPage = nextChapter ? parseInt(nextChapter.pages, 10) - 1 : 604;
-
-    if (pageNum >= startPage && pageNum <= endPage) {
-      return chapter.titleAr;
-    }
-  }
-  return '';
-};
 
 const surahTitleImage = require('../assets/images/surah_title.gif');
 const BISMILLAH = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
@@ -60,7 +43,7 @@ interface QuranWords {
 }
 
 // Decorative Surah Banner Component using surah_title.gif
-const SurahBanner: React.FC<{ name: string }> = ({ name }) => {
+const SurahBanner: React.FC<{ name: string; textColor: string }> = ({ name, textColor }) => {
   return (
     <View style={surahBannerStyles.container}>
       <ImageBackground
@@ -68,7 +51,7 @@ const SurahBanner: React.FC<{ name: string }> = ({ name }) => {
         style={surahBannerStyles.imageBackground}
         resizeMode="stretch"
       >
-        <Text style={surahBannerStyles.text}>{name}</Text>
+        <Text style={[surahBannerStyles.text, { color: textColor }]}>{name}</Text>
       </ImageBackground>
     </View>
   );
@@ -88,7 +71,6 @@ const surahBannerStyles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: '#000000',
     fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
@@ -118,25 +100,6 @@ const QuranPage: React.FC<QuranPageProps> = ({
     loadArabicFont();
   }, []);
 
-  // Get page metadata
-  const pageInfo = useMemo(() => {
-    const suraName = getSurahByPage(page);
-
-    let juzNumber = Math.ceil(page / 20);
-    try {
-      const juzData = quranMetaData.getJuzByPageNumber(page) as any;
-      if (typeof juzData === 'number') {
-        juzNumber = juzData;
-      } else if (juzData && typeof juzData === 'object') {
-        juzNumber = juzData.index || juzData.juz || Math.ceil(page / 20);
-      }
-    } catch {
-      // Use calculated juz number
-    }
-
-    return { suraName, juzNumber };
-  }, [page]);
-
   const getQuranWordsforPage = useCallback(async () => {
     setLoading(true);
     try {
@@ -157,26 +120,6 @@ const QuranPage: React.FC<QuranPageProps> = ({
     getQuranWordsforPage();
   }, [getQuranWordsforPage]);
 
-  // Get the first surah that appears on this page
-  const displaySuraName = useMemo(() => {
-    // First check if there's a start_sura on this page
-    const firstSurahLine = quranWords?.ayahs?.find(
-      (line) => line.metaData?.lineType === 'start_sura'
-    );
-    if (firstSurahLine?.metaData?.suraName) {
-      // Find Arabic name from chapters.json
-      const chapter = chapters.find(
-        (ch) => ch.title.toLowerCase() === firstSurahLine.metaData?.suraName?.toLowerCase().replace('al-', 'al-').replace(/[-\s]/g, '')
-          || firstSurahLine.metaData?.suraName?.includes(ch.title)
-          || ch.title.includes(firstSurahLine.metaData?.suraName || '')
-      );
-      if (chapter) return chapter.titleAr;
-      return firstSurahLine.metaData.suraName;
-    }
-    // Fallback to the surah this page belongs to
-    return pageInfo.suraName;
-  }, [quranWords, pageInfo.suraName]);
-
   const fontKey = `p${page}`;
   const hasCustomFont = !!quranFonts[fontKey];
 
@@ -190,16 +133,6 @@ const QuranPage: React.FC<QuranPageProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerText, { color: colors.textSecondary }]}>
-          {displaySuraName || `${page}`}
-        </Text>
-        <Text style={[styles.headerText, { color: colors.textSecondary }]}>
-          Juz' {pageInfo.juzNumber}
-        </Text>
-      </View>
-
       {/* Page Content - Single pass rendering */}
       <View style={[
         styles.pageContent,
@@ -211,7 +144,7 @@ const QuranPage: React.FC<QuranPageProps> = ({
             const surahName = line.metaData?.suraName || '';
             return (
               <View key={`line-${lineIndex}`}>
-                <SurahBanner name={surahName} />
+                <SurahBanner name={surahName} textColor={colors.textPrimary} />
               </View>
             );
           }
@@ -285,7 +218,7 @@ const styles = StyleSheet.create({
   container: {
     width,
     height,
-    paddingTop: 70,
+    paddingTop: 50,
     paddingBottom: 10,
     paddingHorizontal: 8,
   },
@@ -293,22 +226,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingBottom: 6,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    marginBottom: 4,
-  },
-  headerText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
   pageContent: {
     flex: 1,
     paddingVertical: 4,
+    justifyContent: 'space-between',
   },
   pageContentCentered: {
     justifyContent: 'center',

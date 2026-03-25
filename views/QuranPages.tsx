@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { t } from 'i18next';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -24,13 +24,13 @@ interface QuranPagesProps {
       page?: number;
     };
   };
+  selectedAyah: string | null;
+  setSelectedAyah: (ayah: string | null) => void;
 }
 
-const QuranPages: React.FC<QuranPagesProps> = ({ route }) => {
+const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah }) => {
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
-
-  const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
 
   const initialScrollIndex = route.params.page ? route.params.page - 1 : 0;
 
