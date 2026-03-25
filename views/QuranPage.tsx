@@ -4,7 +4,7 @@ import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  ImageBackground,
+  Image,
   Dimensions,
   StyleSheet,
   ActivityIndicator,
@@ -13,8 +13,79 @@ import { useSelector } from 'react-redux';
 
 import { quranFonts } from '../data/quranFonts';
 import { RootState } from '../store';
+import chapters from '../data/chapters.json';
 
 const surahTitleImage = require('../assets/images/surah_title.gif');
+
+// Helper to normalize surah name for comparison
+const normalizeName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+};
+
+// Remove common Arabic article prefixes (Al-, An-, Ar-, As-, At-, Ad-, Az-, Ash-)
+const removeArticle = (name: string): string => {
+  return name.replace(/^(al|an|ar|as|at|ad|az|ash)/, '');
+};
+
+// Helper to get Arabic surah name from English name using chapters.json
+const getArabicSurahName = (englishName: string): string => {
+  const normalizedInput = normalizeName(englishName);
+  const inputWithoutArticle = removeArticle(normalizedInput);
+
+  // First try exact match
+  for (const chapter of chapters) {
+    const normalizedTitle = normalizeName(chapter.title);
+    if (normalizedTitle === normalizedInput) {
+      return chapter.titleAr;
+    }
+  }
+
+  // Try exact match without articles (handles "Fatiha" vs "Al-Fatiha")
+  for (const chapter of chapters) {
+    const normalizedTitle = normalizeName(chapter.title);
+    const titleWithoutArticle = removeArticle(normalizedTitle);
+    if (titleWithoutArticle === inputWithoutArticle && inputWithoutArticle.length >= 3) {
+      return chapter.titleAr;
+    }
+  }
+
+  // Then try: input starts with chapter name or vice versa (for spelling variations at the end)
+  for (const chapter of chapters) {
+    const normalizedTitle = normalizeName(chapter.title);
+    if (normalizedInput.startsWith(normalizedTitle) || normalizedTitle.startsWith(normalizedInput)) {
+      return chapter.titleAr;
+    }
+  }
+
+  // Try startsWith without articles
+  for (const chapter of chapters) {
+    const normalizedTitle = normalizeName(chapter.title);
+    const titleWithoutArticle = removeArticle(normalizedTitle);
+    if (inputWithoutArticle.length >= 3 && titleWithoutArticle.length >= 3) {
+      if (inputWithoutArticle.startsWith(titleWithoutArticle) || titleWithoutArticle.startsWith(inputWithoutArticle)) {
+        return chapter.titleAr;
+      }
+    }
+  }
+
+  // Finally try matching first characters (min 3 for short names, 6 for longer)
+  for (const chapter of chapters) {
+    const normalizedTitle = normalizeName(chapter.title);
+    const minLen = Math.min(normalizedTitle.length, normalizedInput.length);
+    // For short names (<=5 chars), require full match of shorter string
+    // For longer names, require at least first 6 chars to match
+    if (minLen >= 3) {
+      const matchLen = minLen <= 5 ? minLen : 6;
+      if (normalizedTitle.substring(0, matchLen) === normalizedInput.substring(0, matchLen)) {
+        return chapter.titleAr;
+      }
+    }
+  }
+
+  return englishName;
+};
 const BISMILLAH = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
 
 const { width, height } = Dimensions.get('window');
@@ -43,16 +114,21 @@ interface QuranWords {
 }
 
 // Decorative Surah Banner Component using surah_title.gif
-const SurahBanner: React.FC<{ name: string; textColor: string }> = ({ name, textColor }) => {
+const SurahBanner: React.FC<{ name: string; textColor: string; fontLoaded: boolean }> = ({ name, textColor, fontLoaded }) => {
   return (
     <View style={surahBannerStyles.container}>
-      <ImageBackground
-        source={surahTitleImage}
-        style={surahBannerStyles.imageBackground}
-        resizeMode="stretch"
+      <Image source={surahTitleImage} style={surahBannerStyles.image} resizeMode="stretch" />
+      <Text
+        style={[
+          surahBannerStyles.text,
+          { color: textColor, fontFamily: fontLoaded ? 'Arabic' : undefined }
+        ]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
       >
-        <Text style={[surahBannerStyles.text, { color: textColor }]}>{name}</Text>
-      </ImageBackground>
+        {name}
+      </Text>
     </View>
   );
 };
@@ -63,17 +139,19 @@ const surahBannerStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 6,
-  },
-  imageBackground: {
-    width: '100%',
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  image: {
+    width: width - 16,
+    height: 40,
+    position: 'absolute',
   },
   text: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+    paddingHorizontal: 60,
+    width: width - 16,
   },
 });
 
@@ -142,9 +220,10 @@ const QuranPage: React.FC<QuranPageProps> = ({
           // Surah Banner
           if (line.metaData?.lineType === 'start_sura') {
             const surahName = line.metaData?.suraName || '';
+            const arabicName = getArabicSurahName(surahName);
             return (
               <View key={`line-${lineIndex}`}>
-                <SurahBanner name={surahName} textColor={colors.textPrimary} />
+                <SurahBanner name={arabicName} textColor={colors.textPrimary} fontLoaded={arabicFontLoaded} />
               </View>
             );
           }

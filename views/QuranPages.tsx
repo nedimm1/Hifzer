@@ -26,9 +26,10 @@ interface QuranPagesProps {
   };
   selectedAyah: string | null;
   setSelectedAyah: (ayah: string | null) => void;
+  onTap?: () => void;
 }
 
-const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah }) => {
+const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap }) => {
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
 
@@ -36,13 +37,15 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
 
   const QuranPageRenderItem = useCallback(
     ({ item }: { item: number }) => (
-      <QuranPage
-        page={item}
-        selectedAyah={selectedAyah}
-        setSelectedAyah={setSelectedAyah}
-      />
+      <TouchableOpacity activeOpacity={1} onPress={onTap}>
+        <QuranPage
+          page={item}
+          selectedAyah={selectedAyah}
+          setSelectedAyah={setSelectedAyah}
+        />
+      </TouchableOpacity>
     ),
-    [selectedAyah]
+    [selectedAyah, onTap]
   );
 
   const goToReadingPage = () => {
@@ -57,9 +60,6 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       <FlatList
-        viewabilityConfig={{
-          itemVisiblePercentThreshold: 30,
-        }}
         initialScrollIndex={initialScrollIndex}
         initialNumToRender={1}
         maxToRenderPerBatch={1}

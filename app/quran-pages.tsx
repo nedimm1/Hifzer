@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, StatusBar, BackHandler } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, StatusBar, BackHandler, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,21 +14,40 @@ export default function QuranPagesScreen() {
   const { colors } = useSelector((state: RootState) => state.config);
   const insets = useSafeAreaInsets();
   const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
+  const [headerAnim] = useState(new Animated.Value(0));
+
+  const toggleHeader = useCallback(() => {
+    const toValue = headerVisible ? 0 : 1;
+    setHeaderVisible(!headerVisible);
+    Animated.timing(headerAnim, {
+      toValue,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [headerVisible, headerAnim]);
 
   const handleBackPress = useCallback(() => {
     if (selectedAyah) {
-      // If an ayah is selected, unselect it first
       setSelectedAyah(null);
-      return true; // Prevent default back behavior
+      return true;
     }
-    return false; // Allow default back behavior
-  }, [selectedAyah]);
+    if (headerVisible) {
+      toggleHeader();
+      return true;
+    }
+    return false;
+  }, [selectedAyah, headerVisible, toggleHeader]);
 
-  // Handle Android hardware back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     return () => backHandler.remove();
   }, [handleBackPress]);
+
+  const headerTranslateY = headerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-(insets.top + 60), 0],
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
@@ -38,24 +57,27 @@ export default function QuranPagesScreen() {
         translucent
       />
 
-      {/* Back Button - Positioned in safe area */}
-      <TouchableOpacity
-        onPress={() => router.back()}
+      {/* Animated Header with Back Button */}
+      <Animated.View
         style={[
-          styles.backButton,
+          styles.header,
           {
-            top: insets.top + 8,
+            paddingTop: insets.top,
             backgroundColor: colors.bgSecondary,
+            transform: [{ translateY: headerTranslateY }],
           },
         ]}
       >
-        <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+      </Animated.View>
 
       <QuranPages
         route={{ params: { page: Number(page) } }}
         selectedAyah={selectedAyah}
         setSelectedAyah={setSelectedAyah}
+        onTap={toggleHeader}
       />
     </View>
   );
@@ -65,19 +87,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  backButton: {
+  header: {
     position: 'absolute',
-    left: 16,
+    top: 0,
+    left: 0,
+    right: 0,
     zIndex: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingBottom: 12,
+  },
+  headerBackButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
 });
