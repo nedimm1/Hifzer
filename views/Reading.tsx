@@ -19,6 +19,7 @@ import { spacing } from '../constants/spacing';
 import chapters from '../data/chapters.json';
 import { getAyahTranslation, translationLanguages } from '../services/reading';
 import { RootState } from '../store';
+import MistakeModal from '../components/MistakeModal';
 
 interface AyahReference {
   ayah: number;
@@ -43,6 +44,25 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
   });
   const [isFocused, setIsFocused] = useState(true);
   const [suraEndAyahNumber, setSuraEndAyahNumber] = useState(0);
+
+  // Mistake tracking state
+  const [selectedWord, setSelectedWord] = useState<{ word: string; index: number } | null>(null);
+  const [showMistakeModal, setShowMistakeModal] = useState(false);
+
+  // Split Arabic text into words
+  const arabicWords = useMemo(() => {
+    return arabicText.split(' ').filter((word) => word.trim() !== '');
+  }, [arabicText]);
+
+  const handleWordTap = (word: string, index: number) => {
+    setSelectedWord({ word, index });
+    setShowMistakeModal(true);
+  };
+
+  const handleCloseMistakeModal = () => {
+    setShowMistakeModal(false);
+    setSelectedWord(null);
+  };
 
   const quranTranslation = useMemo(() => {
     return translationLanguages[translationLanguage]?.code || 'bosnian_korkut';
@@ -178,17 +198,30 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
             marginBottom: moderateScale(16, 0.2),
           }}
         >
-          <Text
-            style={{
-              color: colors.textPrimary,
-              fontSize: moderateScale(32, 0.2),
-              lineHeight: moderateScale(56, 0.2),
-              textAlign: 'right',
-              fontFamily: 'Arabic',
-            }}
-          >
-            {arabicText}
+          <Text style={[styles.tapHint, { color: colors.textSecondary }]}>
+            Tap a word to mark a mistake
           </Text>
+          <View style={styles.wordsContainer}>
+            {arabicWords.map((word, index) => (
+              <TouchableOpacity
+                key={`word-${index}`}
+                onPress={() => handleWordTap(word, index)}
+                activeOpacity={0.6}
+                style={styles.wordTouchable}
+              >
+                <Text
+                  style={{
+                    color: colors.textPrimary,
+                    fontSize: moderateScale(32, 0.2),
+                    lineHeight: moderateScale(56, 0.2),
+                    fontFamily: 'Arabic',
+                  }}
+                >
+                  {word}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Translation Card */}
@@ -295,6 +328,19 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
             />
           </TouchableOpacity>
       </View>
+
+      {/* Mistake Modal */}
+      {selectedWord && (
+        <MistakeModal
+          visible={showMistakeModal}
+          word={selectedWord.word}
+          wordIndex={selectedWord.index}
+          surahNumber={ayahReference.surah}
+          surahName={surahName}
+          ayahNumber={ayahReference.ayah}
+          onClose={handleCloseMistakeModal}
+        />
+      )}
     </View>
   );
 };
@@ -305,6 +351,20 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  wordsContainer: {
+    flexDirection: 'row-reverse',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  wordTouchable: {
+    paddingHorizontal: 4,
+  },
+  tapHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 12,
   },
 });
 

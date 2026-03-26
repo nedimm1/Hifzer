@@ -32,6 +32,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="mistakes"
+        options={{
+          title: 'Mistakes',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="exclamationmark.circle.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           title: 'Settings',

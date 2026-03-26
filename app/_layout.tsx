@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 
 import { store, RootState } from '../store';
 import { initializeConfig, ThemeName, TranslationLanguage } from '../store/configSlice';
+import { initializeMistakes } from '../store/mistakesSlice';
 import '../i18n';
 
 export const unstable_settings = {
@@ -24,20 +25,24 @@ function AppContent() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const [savedTheme, savedDarkMode, savedTranslationLang] = await Promise.all([
+        const [savedTheme, savedDarkMode, savedTranslationLang, savedMistakes] = await Promise.all([
           AsyncStorage.getItem('theme'),
           AsyncStorage.getItem('isDarkMode'),
           AsyncStorage.getItem('translationLanguage'),
+          AsyncStorage.getItem('mistakes'),
         ]);
 
         const themeName = (savedTheme as ThemeName) || 'default';
         const isDarkMode = savedDarkMode === 'true';
         const translationLanguage = (savedTranslationLang as TranslationLanguage) || 'bs';
+        const mistakes = savedMistakes ? JSON.parse(savedMistakes) : [];
 
         dispatch(initializeConfig({ themeName, isDarkMode, translationLanguage }));
+        dispatch(initializeMistakes(mistakes));
       } catch (error) {
         console.log('Error loading config:', error);
         dispatch(initializeConfig({ themeName: 'default', isDarkMode: false }));
+        dispatch(initializeMistakes([]));
       }
     };
 
