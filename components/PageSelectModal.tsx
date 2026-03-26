@@ -75,10 +75,7 @@ const PageSelectModal: React.FC<PageSelectModalProps> = ({
           <View style={styles.header}>
             <View style={styles.headerContent}>
               <Text style={[styles.arabicTitle, { color: colors.accent }]}>
-                {selectedSura.name.arabic}
-              </Text>
-              <Text style={[styles.title, { color: colors.textPrimary }]}>
-                {suraName}
+                سورة  {selectedSura.name.arabic}
               </Text>
               <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                 {t('selectPage')} ({selectedSura.totalPages} {t('pages').toLowerCase()})

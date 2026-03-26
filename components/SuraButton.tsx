@@ -78,7 +78,12 @@ const SuraButton: React.FC<SuraButtonProps> = ({
         </View>
 
         <View style={styles.rightContent}>
-          <Text style={[styles.arabicName, { color: colors.accent }]}>
+          <Text
+            style={[styles.arabicName, { color: colors.accent }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {sura.name.arabic}
           </Text>
         </View>
@@ -125,6 +130,7 @@ const styles = StyleSheet.create({
   },
   leftContent: {
     flex: 1,
+    marginRight: spacing.sm,
   },
   suraName: {
     fontWeight: '600',
@@ -145,11 +151,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   rightContent: {
-    marginLeft: spacing.md,
+    flexShrink: 0,
+    maxWidth: '55%',
   },
   arabicName: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '500',
+    textAlign: 'right',
   },
   chevron: {
     marginLeft: spacing.sm,

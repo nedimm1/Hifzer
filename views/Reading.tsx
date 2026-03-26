@@ -77,8 +77,8 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
         const { numberOfAyas } = quranMetaData.getSuraByIndex(surah);
         setSuraEndAyahNumber(numberOfAyas);
 
-        const selectedSurahName =
-          (chapters as any[]).find((c) => c.index.includes(surah))?.title || '';
+        const chapter = (chapters as any[]).find((c) => c.index.includes(surah));
+        const selectedSurahName = chapter?.titleAr ? `سورة  ${chapter.titleAr}` : '';
         setSurahName(selectedSurahName);
       }
     } catch (error) {
@@ -226,60 +226,33 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
       {/* Bottom Navigation */}
       <View
         style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
           backgroundColor: colors.bgPrimary,
-          paddingHorizontal: moderateScale(20, 0.2),
-          paddingVertical: moderateScale(16, 0.2),
-          paddingBottom: moderateScale(32, 0.2),
+          paddingHorizontal: moderateScale(24, 0.2),
+          paddingTop: moderateScale(16, 0.2),
+          paddingBottom: moderateScale(40, 0.2),
           borderTopWidth: 1,
           borderTopColor: colors.border,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
           {/* Previous Button */}
           <TouchableOpacity
             activeOpacity={ayahReference.ayah <= 1 ? 0.4 : 0.7}
             onPress={getPreviousAyah}
             disabled={ayahReference.ayah <= 1}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: moderateScale(12, 0.2),
-              paddingHorizontal: moderateScale(16, 0.2),
-              borderRadius: moderateScale(12, 0.2),
-              backgroundColor:
-                ayahReference.ayah > 1
-                  ? colors.bgSecondary
-                  : `${colors.textSecondary}20`,
+              padding: moderateScale(8, 0.2),
             }}
           >
             <Ionicons
               name="chevron-back"
-              size={moderateScale(20, 0.2)}
+              size={moderateScale(28, 0.2)}
               color={
                 ayahReference.ayah > 1 ? colors.accent : colors.textSecondary
               }
             />
-            <Text
-              style={{
-                color:
-                  ayahReference.ayah > 1 ? colors.accent : colors.textSecondary,
-                fontSize: moderateScale(14, 0.2),
-                fontWeight: '600',
-                marginLeft: 4,
-              }}
-            >
-              Previous
-            </Text>
           </TouchableOpacity>
 
           {/* Ayah indicator */}
@@ -308,33 +281,12 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
             onPress={getNextAyah}
             disabled={ayahReference.ayah >= suraEndAyahNumber}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: moderateScale(12, 0.2),
-              paddingHorizontal: moderateScale(16, 0.2),
-              borderRadius: moderateScale(12, 0.2),
-              backgroundColor:
-                ayahReference.ayah < suraEndAyahNumber
-                  ? colors.bgSecondary
-                  : `${colors.textSecondary}20`,
+              padding: moderateScale(8, 0.2),
             }}
           >
-            <Text
-              style={{
-                color:
-                  ayahReference.ayah < suraEndAyahNumber
-                    ? colors.accent
-                    : colors.textSecondary,
-                fontSize: moderateScale(14, 0.2),
-                fontWeight: '600',
-                marginRight: 4,
-              }}
-            >
-              Next
-            </Text>
             <Ionicons
               name="chevron-forward"
-              size={moderateScale(20, 0.2)}
+              size={moderateScale(28, 0.2)}
               color={
                 ayahReference.ayah < suraEndAyahNumber
                   ? colors.accent
@@ -342,7 +294,6 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
               }
             />
           </TouchableOpacity>
-        </View>
       </View>
     </View>
   );

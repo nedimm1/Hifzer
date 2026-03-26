@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: 50,
     paddingBottom: spacing.sm,
   },
   closeButton: {

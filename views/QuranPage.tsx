@@ -24,9 +24,9 @@ const normalizeName = (name: string): string => {
     .replace(/[^a-z]/g, '');
 };
 
-// Remove common Arabic article prefixes (Al-, An-, Ar-, As-, At-, Ad-, Az-, Ash-)
+// Remove common Arabic article prefixes (Al-, An-, Ar-, As-, At-, Ad-, Az-, Ash-, Aal-, Ali-)
 const removeArticle = (name: string): string => {
-  return name.replace(/^(al|an|ar|as|at|ad|az|ash)/, '');
+  return name.replace(/^(aal|ali|al|an|ar|as|at|ad|az|ash)/, '');
 };
 
 // Helper to get Arabic surah name from English name using chapters.json
@@ -127,7 +127,7 @@ const SurahBanner: React.FC<{ name: string; textColor: string; fontLoaded: boole
         adjustsFontSizeToFit
         minimumFontScale={0.5}
       >
-        {name}
+        سورة  {name}
       </Text>
     </View>
   );
@@ -138,20 +138,21 @@ const surahBannerStyles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 6,
-    height: 40,
+    marginVertical: 8,
+    height: 44,
   },
   image: {
     width: width - 16,
-    height: 40,
+    height: 44,
     position: 'absolute',
   },
   text: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
-    paddingHorizontal: 60,
+    paddingHorizontal: 50,
     width: width - 16,
+    lineHeight: 28,
   },
 });
 
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   pageContentCentered: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   bismillahContainer: {
     width: '100%',
