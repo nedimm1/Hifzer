@@ -29,6 +29,13 @@ const mistakesSlice = createSlice({
       state.mistakes = state.mistakes.filter((m) => m.id !== action.payload);
       AsyncStorage.setItem('mistakes', JSON.stringify(state.mistakes));
     },
+    updateMistakeNote: (state, action: PayloadAction<{ id: string; note: string }>) => {
+      const mistake = state.mistakes.find((m) => m.id === action.payload.id);
+      if (mistake) {
+        mistake.note = action.payload.note;
+        AsyncStorage.setItem('mistakes', JSON.stringify(state.mistakes));
+      }
+    },
     clearAllMistakes: (state) => {
       state.mistakes = [];
       AsyncStorage.removeItem('mistakes');
@@ -73,6 +80,28 @@ export const selectMistakeStatistics = createSelector(
   }
 );
 
-export const { initializeMistakes, addMistake, deleteMistake, clearAllMistakes } =
+// Selector for mistakes grouped by surah
+export const selectMistakesGroupedBySurah = createSelector(
+  [selectMistakes],
+  (mistakes) => {
+    const grouped: Record<number, { surahName: string; surahNumber: number; mistakes: Mistake[] }> = {};
+
+    mistakes.forEach((m) => {
+      if (!grouped[m.surahNumber]) {
+        grouped[m.surahNumber] = {
+          surahName: m.surahName,
+          surahNumber: m.surahNumber,
+          mistakes: [],
+        };
+      }
+      grouped[m.surahNumber].mistakes.push(m);
+    });
+
+    // Sort by surah number and return as array
+    return Object.values(grouped).sort((a, b) => a.surahNumber - b.surahNumber);
+  }
+);
+
+export const { initializeMistakes, addMistake, deleteMistake, updateMistakeNote, clearAllMistakes } =
   mistakesSlice.actions;
 export default mistakesSlice.reducer;

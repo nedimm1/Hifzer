@@ -1,6 +1,6 @@
 import quranWordsNpm from '@kmaslesa/holy-quran-word-by-word-min';
 import { loadAsync } from 'expo-font';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 
 import { quranFonts } from '../data/quranFonts';
 import { RootState } from '../store';
+import { selectMistakes } from '../store/mistakesSlice';
 import chapters from '../data/chapters.json';
 
 const surahTitleImage = require('../assets/images/surah_title.gif');
@@ -165,6 +166,16 @@ const QuranPage: React.FC<QuranPageProps> = ({
   const [isLoading, setLoading] = useState(true);
   const [arabicFontLoaded, setArabicFontLoaded] = useState(false);
   const { colors } = useSelector((state: RootState) => state.config);
+  const allMistakes = useSelector(selectMistakes);
+
+  // Create a set of ayahKeys that have mistakes for quick lookup
+  const ayahsWithMistakes = useMemo(() => {
+    const ayahKeys = new Set<string>();
+    allMistakes.forEach((m) => {
+      ayahKeys.add(`${m.surahNumber}:${m.ayahNumber}`);
+    });
+    return ayahKeys;
+  }, [allMistakes]);
 
   // Load Arabic font for bismillah
   useEffect(() => {
@@ -263,13 +274,17 @@ const QuranPage: React.FC<QuranPageProps> = ({
                 >
                   {line.words.map((word, wordIndex) => {
                     const isWordSelected = selectedAyah === word.ayahKey;
+                    const ayahHasMistake = ayahsWithMistakes.has(word.ayahKey);
                     return (
                       <Text
                         key={`word-${lineIndex}-${wordIndex}`}
                         onPress={() => {
                           setSelectedAyah(isWordSelected ? null : word.ayahKey);
                         }}
-                        style={isWordSelected ? { color: colors.accent } : undefined}
+                        style={[
+                          isWordSelected && { color: colors.accent },
+                          ayahHasMistake && !isWordSelected && { color: colors.danger },
+                        ]}
                       >
                         {word.codeV1}
                       </Text>

@@ -1,26 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
+import { loadAsync } from 'expo-font';
 
 import { spacing } from '../../constants/spacing';
+import { quranFonts } from '../../data/quranFonts';
 import { RootState } from '../../store';
 import {
-  selectMistakes,
   selectMistakeStatistics,
+  selectMistakesGroupedBySurah,
   deleteMistake,
   clearAllMistakes,
+  updateMistakeNote,
 } from '../../store/mistakesSlice';
 import { Mistake } from '../../types/mistakes';
+import MistakeModal from '../../components/MistakeModal';
 
 const StatCard: React.FC<{
   label: string;
@@ -38,8 +42,9 @@ const StatCard: React.FC<{
 const MistakeCard: React.FC<{
   mistake: Mistake;
   colors: any;
+  onEdit: () => void;
   onDelete: () => void;
-}> = ({ mistake, colors, onDelete }) => {
+}> = ({ mistake, colors, onEdit, onDelete }) => {
   const handleDelete = () => {
     Alert.alert('Delete Mistake', 'Are you sure you want to delete this mistake?', [
       { text: 'Cancel', style: 'cancel' },
@@ -48,41 +53,117 @@ const MistakeCard: React.FC<{
   };
 
   return (
-    <View style={[styles.mistakeCard, { backgroundColor: colors.bgSecondary }]}>
+    <TouchableOpacity
+      style={[styles.mistakeCard, { backgroundColor: colors.bgSecondary }]}
+      onPress={onEdit}
+      activeOpacity={0.7}
+    >
       <View style={styles.mistakeHeader}>
-        <Text style={[styles.mistakeWord, { color: colors.danger }]}>{mistake.wordText}</Text>
+        <View style={styles.mistakeInfo}>
+          <Text style={[styles.mistakeWord, { color: colors.danger }]}>{mistake.wordText}</Text>
+          <Text style={[styles.mistakeReference, { color: colors.textSecondary }]}>
+            Ayah {mistake.ayahNumber}, Word {mistake.wordIndex + 1}
+          </Text>
+        </View>
         <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
           <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.mistakeReference, { color: colors.textSecondary }]}>
-        {mistake.surahName} - Ayah {mistake.ayahNumber}, Word {mistake.wordIndex + 1}
-      </Text>
-
       {mistake.note ? (
         <Text style={[styles.mistakeNote, { color: colors.textPrimary }]}>{mistake.note}</Text>
-      ) : null}
+      ) : (
+        <Text style={[styles.mistakeNoNote, { color: colors.textSecondary }]}>
+          Tap to add a note
+        </Text>
+      )}
 
       <Text style={[styles.mistakeDate, { color: colors.textSecondary }]}>
         {new Date(mistake.timestamp).toLocaleDateString()}
       </Text>
+    </TouchableOpacity>
+  );
+};
+
+const SurahFolder: React.FC<{
+  surahName: string;
+  surahNumber: number;
+  mistakes: Mistake[];
+  colors: any;
+  onEditMistake: (mistake: Mistake) => void;
+  onDeleteMistake: (id: string) => void;
+}> = ({ surahName, surahNumber, mistakes, colors, onEditMistake, onDeleteMistake }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <View style={[styles.surahFolder, { backgroundColor: colors.bgSecondary }]}>
+      <TouchableOpacity
+        style={styles.folderHeader}
+        onPress={() => setIsExpanded(!isExpanded)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.folderTitleContainer}>
+          <Ionicons
+            name={isExpanded ? 'folder-open' : 'folder'}
+            size={22}
+            color={colors.accent}
+          />
+          <Text style={[styles.folderTitle, { color: colors.textPrimary }]}>{surahName}</Text>
+        </View>
+        <View style={styles.folderRight}>
+          <View style={[styles.countBadge, { backgroundColor: colors.danger }]}>
+            <Text style={styles.countText}>{mistakes.length}</Text>
+          </View>
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={colors.textSecondary}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {isExpanded && (
+        <View style={styles.folderContent}>
+          {mistakes.map((mistake) => (
+            <MistakeCard
+              key={mistake.id}
+              mistake={mistake}
+              colors={colors}
+              onEdit={() => onEditMistake(mistake)}
+              onDelete={() => onDeleteMistake(mistake.id)}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
 
 const MistakesScreen = () => {
   const { colors } = useSelector((state: RootState) => state.config);
-  const mistakes = useSelector(selectMistakes);
+  const groupedMistakes = useSelector(selectMistakesGroupedBySurah);
   const statistics = useSelector(selectMistakeStatistics);
   const dispatch = useDispatch();
+
+  const [editingMistake, setEditingMistake] = useState<Mistake | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const handleDeleteMistake = (id: string) => {
     dispatch(deleteMistake(id));
   };
 
+  const handleEditMistake = (mistake: Mistake) => {
+    setEditingMistake(mistake);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingMistake(null);
+  };
+
   const handleClearAll = () => {
-    if (mistakes.length === 0) return;
+    if (statistics.totalMistakes === 0) return;
 
     Alert.alert(
       'Clear All Mistakes',
@@ -98,73 +179,6 @@ const MistakesScreen = () => {
     );
   };
 
-  const renderHeader = () => (
-    <View>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>Mistakes</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Track your recitation progress
-        </Text>
-      </View>
-
-      {/* Statistics */}
-      <View style={styles.statsRow}>
-        <StatCard
-          label="Total"
-          value={statistics.totalMistakes}
-          icon="alert-circle"
-          colors={colors}
-        />
-        <StatCard
-          label="Surahs"
-          value={statistics.surahsAffected}
-          icon="book"
-          colors={colors}
-        />
-      </View>
-
-      {/* Most Common Surahs */}
-      {statistics.mostCommonSurahs.length > 0 && (
-        <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            MOST COMMON SURAHS
-          </Text>
-          {statistics.mostCommonSurahs.map((item) => (
-            <View key={item.surahNumber} style={styles.surahRow}>
-              <Text style={[styles.surahName, { color: colors.textPrimary }]}>
-                {item.surahName}
-              </Text>
-              <View style={[styles.countBadge, { backgroundColor: colors.danger }]}>
-                <Text style={styles.countText}>{item.count}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* All Mistakes Header */}
-      <View style={styles.allMistakesHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>ALL MISTAKES</Text>
-        {mistakes.length > 0 && (
-          <TouchableOpacity onPress={handleClearAll}>
-            <Text style={[styles.clearAllText, { color: colors.danger }]}>Clear All</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-
-  const renderEmpty = () => (
-    <View style={styles.emptyState}>
-      <Ionicons name="checkmark-circle" size={64} color={colors.accent} />
-      <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No mistakes yet</Text>
-      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-        Open an ayah and tap on words to mark mistakes
-      </Text>
-    </View>
-  );
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       <StatusBar
@@ -172,21 +186,83 @@ const MistakesScreen = () => {
         backgroundColor={colors.bgPrimary}
       />
 
-      <FlatList
-        data={mistakes}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <MistakeCard
-            mistake={item}
-            colors={colors}
-            onDelete={() => handleDeleteMistake(item.id)}
-          />
-        )}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        contentContainerStyle={styles.listContent}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-      />
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Mistakes</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Track your recitation progress
+          </Text>
+        </View>
+
+        {/* Statistics */}
+        <View style={styles.statsRow}>
+          <StatCard
+            label="Total"
+            value={statistics.totalMistakes}
+            icon="alert-circle"
+            colors={colors}
+          />
+          <StatCard
+            label="Surahs"
+            value={statistics.surahsAffected}
+            icon="book"
+            colors={colors}
+          />
+        </View>
+
+        {/* Surah Folders Header */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            MISTAKES BY SURAH
+          </Text>
+          {statistics.totalMistakes > 0 && (
+            <TouchableOpacity onPress={handleClearAll}>
+              <Text style={[styles.clearAllText, { color: colors.danger }]}>Clear All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Surah Folders or Empty State */}
+        {groupedMistakes.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="checkmark-circle" size={64} color={colors.accent} />
+            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No mistakes yet</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Open an ayah and tap on words to mark mistakes
+            </Text>
+          </View>
+        ) : (
+          groupedMistakes.map((group) => (
+            <SurahFolder
+              key={group.surahNumber}
+              surahName={group.surahName}
+              surahNumber={group.surahNumber}
+              mistakes={group.mistakes}
+              colors={colors}
+              onEditMistake={handleEditMistake}
+              onDeleteMistake={handleDeleteMistake}
+            />
+          ))
+        )}
+      </ScrollView>
+
+      {/* Edit Modal */}
+      {editingMistake && (
+        <MistakeModal
+          visible={showModal}
+          word={editingMistake.wordText}
+          wordIndex={editingMistake.wordIndex}
+          surahNumber={editingMistake.surahNumber}
+          surahName={editingMistake.surahName}
+          ayahNumber={editingMistake.ayahNumber}
+          onClose={handleCloseModal}
+          existingMistake={editingMistake}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -195,7 +271,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContent: {
+  scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,
   },
@@ -232,26 +308,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  section: {
-    padding: spacing.lg,
-    borderRadius: 16,
-    marginBottom: spacing.lg,
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: spacing.md,
   },
-  surahRow: {
+  clearAllText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  surahFolder: {
+    borderRadius: 16,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  folderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    padding: spacing.lg,
   },
-  surahName: {
-    fontSize: 16,
-    fontWeight: '500',
+  folderTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  folderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  folderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   countBadge: {
     paddingHorizontal: spacing.sm,
@@ -265,18 +360,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  allMistakesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  clearAllText: {
-    fontSize: 14,
-    fontWeight: '500',
+  folderContent: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
   mistakeCard: {
-    padding: spacing.lg,
+    padding: spacing.md,
     borderRadius: 12,
     marginBottom: spacing.sm,
   },
@@ -285,24 +374,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
+  mistakeInfo: {
+    flex: 1,
+  },
   mistakeWord: {
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 24,
+    fontFamily: 'Arabic',
+  },
+  mistakeReference: {
+    fontSize: 12,
+    marginTop: 2,
   },
   deleteButton: {
     padding: spacing.xs,
-  },
-  mistakeReference: {
-    fontSize: 14,
-    marginTop: spacing.xs,
   },
   mistakeNote: {
     fontSize: 14,
     marginTop: spacing.sm,
     fontStyle: 'italic',
   },
+  mistakeNoNote: {
+    fontSize: 14,
+    marginTop: spacing.sm,
+    fontStyle: 'italic',
+  },
   mistakeDate: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: spacing.sm,
   },
   emptyState: {

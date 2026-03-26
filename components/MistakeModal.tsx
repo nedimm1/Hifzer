@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,16 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
+import { loadAsync } from 'expo-font';
 
 import { spacing } from '../constants/spacing';
+import { quranFonts } from '../data/quranFonts';
 import { RootState } from '../store';
-import { addMistake } from '../store/mistakesSlice';
+import { addMistake, updateMistakeNote, deleteMistake } from '../store/mistakesSlice';
 import { Mistake } from '../types/mistakes';
 
 interface MistakeModalProps {
@@ -26,6 +29,7 @@ interface MistakeModalProps {
   surahName: string;
   ayahNumber: number;
   onClose: () => void;
+  existingMistake?: Mistake | null;
 }
 
 const MistakeModal: React.FC<MistakeModalProps> = ({
@@ -36,26 +40,74 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
   surahName,
   ayahNumber,
   onClose,
+  existingMistake,
 }) => {
   const [note, setNote] = useState('');
+  const [arabicFontLoaded, setArabicFontLoaded] = useState(false);
   const { colors } = useSelector((state: RootState) => state.config);
   const dispatch = useDispatch();
 
-  const handleSave = () => {
-    const mistake: Mistake = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      surahNumber,
-      surahName,
-      ayahNumber,
-      wordIndex,
-      wordText: word,
-      note: note.trim(),
-      timestamp: Date.now(),
-    };
+  const isEditing = !!existingMistake;
 
-    dispatch(addMistake(mistake));
+  // Load Arabic font
+  useEffect(() => {
+    const loadArabicFont = async () => {
+      try {
+        await loadAsync({ Arabic: quranFonts.Arabic });
+        setArabicFontLoaded(true);
+      } catch {
+        setArabicFontLoaded(true);
+      }
+    };
+    loadArabicFont();
+  }, []);
+
+  // Set initial note when editing
+  useEffect(() => {
+    if (existingMistake) {
+      setNote(existingMistake.note);
+    } else {
+      setNote('');
+    }
+  }, [existingMistake, visible]);
+
+  const handleSave = () => {
+    if (isEditing && existingMistake) {
+      // Update existing mistake note
+      dispatch(updateMistakeNote({ id: existingMistake.id, note: note.trim() }));
+    } else {
+      // Create new mistake
+      const mistake: Mistake = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        surahNumber,
+        surahName,
+        ayahNumber,
+        wordIndex,
+        wordText: word,
+        note: note.trim(),
+        timestamp: Date.now(),
+      };
+      dispatch(addMistake(mistake));
+    }
     setNote('');
     onClose();
+  };
+
+  const handleDelete = () => {
+    if (!existingMistake) return;
+
+    Alert.alert('Delete Mistake', 'Are you sure you want to delete this mistake?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          dispatch(deleteMistake(existingMistake.id));
+          setNote('');
+          onClose();
+        },
+      },
+    ]);
   };
 
   const handleClose = () => {
@@ -76,7 +128,9 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
           >
             {/* Header */}
             <View style={styles.header}>
-              <Text style={[styles.title, { color: colors.textPrimary }]}>Mark Mistake</Text>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                {isEditing ? 'Edit Mistake' : 'Mark Mistake'}
+              </Text>
               <TouchableOpacity
                 onPress={handleClose}
                 style={[styles.closeButton, { backgroundColor: colors.bgSecondary }]}
@@ -87,7 +141,7 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
 
             {/* Selected Word Preview */}
             <View style={[styles.wordPreview, { backgroundColor: colors.bgSecondary }]}>
-              <Text style={[styles.wordText, { color: colors.danger }]}>{word}</Text>
+              <Text style={[styles.wordText, { color: colors.danger, fontFamily: arabicFontLoaded ? 'Arabic' : undefined }]}>{word}</Text>
               <Text style={[styles.reference, { color: colors.textSecondary }]}>
                 {surahName} - Ayah {ayahNumber}, Word {wordIndex + 1}
               </Text>
@@ -117,18 +171,37 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
 
             {/* Buttons */}
             <View style={styles.buttons}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton, { borderColor: colors.border }]}
-                onPress={handleClose}
-              >
-                <Text style={[styles.buttonText, { color: colors.textSecondary }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.saveButton, { backgroundColor: colors.accent }]}
-                onPress={handleSave}
-              >
-                <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Save Mistake</Text>
-              </TouchableOpacity>
+              {isEditing ? (
+                <>
+                  <TouchableOpacity
+                    style={[styles.button, styles.deleteButton, { backgroundColor: colors.danger }]}
+                    onPress={handleDelete}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.saveButton, { backgroundColor: colors.accent, flex: 2 }]}
+                    onPress={handleSave}
+                  >
+                    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Save Changes</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={[styles.button, styles.cancelButton, { borderColor: colors.border }]}
+                    onPress={handleClose}
+                  >
+                    <Text style={[styles.buttonText, { color: colors.textSecondary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.saveButton, { backgroundColor: colors.accent }]}
+                    onPress={handleSave}
+                  >
+                    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Save Mistake</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </Pressable>
         </KeyboardAvoidingView>
@@ -207,9 +280,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   cancelButton: {
     borderWidth: 1,
+  },
+  deleteButton: {
+    flex: 0,
+    width: 48,
   },
   saveButton: {},
   buttonText: {
