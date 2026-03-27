@@ -28,6 +28,7 @@ interface QuranPagesProps {
   selectedAyah: string | null;
   setSelectedAyah: (ayah: string | null) => void;
   onTap?: () => void;
+  onPageChange?: (page: number) => void;
 }
 
 // Helper to get surah name from ayah key
@@ -37,7 +38,7 @@ const getSurahName = (ayahKey: string): string => {
   return chapter?.title || `Surah ${surahNumber}`;
 };
 
-const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap }) => {
+const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap, onPageChange }) => {
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
   const allMistakes = useSelector(selectMistakes);
@@ -46,6 +47,22 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
   const { height } = Dimensions.get('window');
 
   const initialScrollIndex = route.params.page ? route.params.page - 1 : 0;
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: Array<{ item: number }> }) => {
+      if (viewableItems.length > 0 && onPageChange) {
+        onPageChange(viewableItems[0].item);
+      }
+    },
+    [onPageChange]
+  );
+
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: 50,
+    }),
+    []
+  );
 
   // Get mistake count for selected ayah
   const mistakeCount = useMemo(() => {
@@ -116,6 +133,8 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
         keyExtractor={(item) => `pageId:${item}`}
         data={pages}
         renderItem={QuranPageRenderItem}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
       />
 
       {/* Speech Bubble Tooltip */}

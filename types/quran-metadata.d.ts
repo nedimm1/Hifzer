@@ -31,15 +31,21 @@ declare module '@kmaslesa/quran-metadata' {
     endAyahIndex: number;
   }
 
+  interface Juz {
+    id: number;
+    startPage: number;
+    endPage: number;
+  }
+
   interface QuranMetaData {
     getSuraList(): Sura[];
     getSuraByIndex(index: number): Sura;
-    getSuraByPageNumber(pageNumber: number): Sura;
+    getSuraByPageNumber(pageNumber: number): Sura[];
     searchSuraByName(name: string): Sura[];
     searchSuraByBosnianName(name: string): Sura[];
     searchSuraByEnglishName(name: string): Sura[];
     searchSuraByArabicName(name: string): Sura[];
-    getJuzByPageNumber(pageNumber: number): any;
+    getJuzByPageNumber(pageNumber: number): Juz;
     getJuzList(): any[];
     getJuzById(id: number): any;
     getPageInfo(pageNumber: number): any;
