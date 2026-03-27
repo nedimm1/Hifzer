@@ -12,6 +12,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadAsync } from 'expo-font';
+import { useRouter } from 'expo-router';
+import quranMetaData from '@kmaslesa/quran-metadata';
 
 import { spacing } from '../../constants/spacing';
 import { quranFonts } from '../../data/quranFonts';
@@ -19,12 +21,23 @@ import { RootState } from '../../store';
 import {
   selectMistakeStatistics,
   selectMistakesGroupedBySurah,
-  deleteMistake,
   clearAllMistakes,
-  updateMistakeNote,
 } from '../../store/mistakesSlice';
 import { Mistake } from '../../types/mistakes';
-import MistakeModal from '../../components/MistakeModal';
+
+const getPageForAyah = (surahNumber: number, ayahNumber: number): number => {
+  const suraAyahIndex = quranMetaData.getSuraStartEndAyahIndex(surahNumber);
+  const globalAyahIndex = suraAyahIndex.startAyahIndex + ayahNumber;
+
+  for (let page = 1; page <= 604; page++) {
+    const pageRange = quranMetaData.getPageStartEndAyahIndex(page);
+    if (globalAyahIndex >= pageRange.startAyahIndex && globalAyahIndex <= pageRange.endAyahIndex) {
+      return page;
+    }
+  }
+
+  return 1;
+};
 
 const StatCard: React.FC<{
   label: string;
@@ -42,45 +55,24 @@ const StatCard: React.FC<{
 const MistakeCard: React.FC<{
   mistake: Mistake;
   colors: any;
-  onEdit: () => void;
-  onDelete: () => void;
-}> = ({ mistake, colors, onEdit, onDelete }) => {
-  const handleDelete = () => {
-    Alert.alert('Delete Mistake', 'Are you sure you want to delete this mistake?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: onDelete },
-    ]);
-  };
-
+  onNavigate: () => void;
+  arabicFontLoaded: boolean;
+}> = ({ mistake, colors, onNavigate, arabicFontLoaded }) => {
   return (
     <TouchableOpacity
-      style={[styles.mistakeCard, { backgroundColor: colors.bgSecondary }]}
-      onPress={onEdit}
+      style={[styles.mistakeCard, { backgroundColor: colors.bgPrimary }]}
+      onPress={onNavigate}
       activeOpacity={0.7}
     >
-      <View style={styles.mistakeHeader}>
-        <View style={styles.mistakeInfo}>
-          <Text style={[styles.mistakeWord, { color: colors.danger }]}>{mistake.wordText}</Text>
-          <Text style={[styles.mistakeReference, { color: colors.textSecondary }]}>
-            Ayah {mistake.ayahNumber}, Word {mistake.wordIndex + 1}
-          </Text>
-        </View>
-        <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-          <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
-
-      {mistake.note ? (
-        <Text style={[styles.mistakeNote, { color: colors.textPrimary }]}>{mistake.note}</Text>
-      ) : (
-        <Text style={[styles.mistakeNoNote, { color: colors.textSecondary }]}>
-          Tap to add a note
-        </Text>
-      )}
-
-      <Text style={[styles.mistakeDate, { color: colors.textSecondary }]}>
-        {new Date(mistake.timestamp).toLocaleDateString()}
+      <Text style={[styles.mistakeWord, { color: colors.danger, fontFamily: arabicFontLoaded ? 'Arabic' : undefined }]}>
+        {mistake.wordText}
       </Text>
+      <View style={styles.mistakeCardRight}>
+        <Text style={[styles.mistakeReference, { color: colors.textSecondary }]}>
+          {mistake.ayahNumber}:{mistake.wordIndex + 1}
+        </Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -90,9 +82,9 @@ const SurahFolder: React.FC<{
   surahNumber: number;
   mistakes: Mistake[];
   colors: any;
-  onEditMistake: (mistake: Mistake) => void;
-  onDeleteMistake: (id: string) => void;
-}> = ({ surahName, surahNumber, mistakes, colors, onEditMistake, onDeleteMistake }) => {
+  onNavigateToMistake: (mistake: Mistake) => void;
+  arabicFontLoaded: boolean;
+}> = ({ surahName, surahNumber, mistakes, colors, onNavigateToMistake, arabicFontLoaded }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -103,16 +95,14 @@ const SurahFolder: React.FC<{
         activeOpacity={0.7}
       >
         <View style={styles.folderTitleContainer}>
-          <Ionicons
-            name={isExpanded ? 'folder-open' : 'folder'}
-            size={22}
-            color={colors.accent}
-          />
+          <View style={[styles.surahIcon, { backgroundColor: `${colors.accent}15` }]}>
+            <Ionicons name="book" size={18} color={colors.accent} />
+          </View>
           <Text style={[styles.folderTitle, { color: colors.textPrimary }]}>{surahName}</Text>
         </View>
         <View style={styles.folderRight}>
-          <View style={[styles.countBadge, { backgroundColor: colors.danger }]}>
-            <Text style={styles.countText}>{mistakes.length}</Text>
+          <View style={[styles.countBadge, { backgroundColor: `${colors.danger}20` }]}>
+            <Text style={[styles.countText, { color: colors.danger }]}>{mistakes.length}</Text>
           </View>
           <Ionicons
             name={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -129,8 +119,8 @@ const SurahFolder: React.FC<{
               key={mistake.id}
               mistake={mistake}
               colors={colors}
-              onEdit={() => onEditMistake(mistake)}
-              onDelete={() => onDeleteMistake(mistake.id)}
+              onNavigate={() => onNavigateToMistake(mistake)}
+              arabicFontLoaded={arabicFontLoaded}
             />
           ))}
         </View>
@@ -144,22 +134,29 @@ const MistakesScreen = () => {
   const groupedMistakes = useSelector(selectMistakesGroupedBySurah);
   const statistics = useSelector(selectMistakeStatistics);
   const dispatch = useDispatch();
+  const router = useRouter();
 
-  const [editingMistake, setEditingMistake] = useState<Mistake | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [arabicFontLoaded, setArabicFontLoaded] = useState(false);
 
-  const handleDeleteMistake = (id: string) => {
-    dispatch(deleteMistake(id));
-  };
+  // Load Arabic font
+  useEffect(() => {
+    const loadArabicFont = async () => {
+      try {
+        await loadAsync({ Arabic: quranFonts.Arabic });
+        setArabicFontLoaded(true);
+      } catch {
+        setArabicFontLoaded(true);
+      }
+    };
+    loadArabicFont();
+  }, []);
 
-  const handleEditMistake = (mistake: Mistake) => {
-    setEditingMistake(mistake);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingMistake(null);
+  const handleNavigateToMistake = (mistake: Mistake) => {
+    const page = getPageForAyah(mistake.surahNumber, mistake.ayahNumber);
+    router.push({
+      pathname: '/quran-pages',
+      params: { page: page.toString() },
+    });
   };
 
   const handleClearAll = () => {
@@ -215,16 +212,16 @@ const MistakesScreen = () => {
         </View>
 
         {/* Surah Folders Header */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            MISTAKES BY SURAH
-          </Text>
-          {statistics.totalMistakes > 0 && (
+        {groupedMistakes.length > 0 && (
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              By Surah
+            </Text>
             <TouchableOpacity onPress={handleClearAll}>
               <Text style={[styles.clearAllText, { color: colors.danger }]}>Clear All</Text>
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Surah Folders or Empty State */}
         {groupedMistakes.length === 0 ? (
@@ -243,26 +240,12 @@ const MistakesScreen = () => {
               surahNumber={group.surahNumber}
               mistakes={group.mistakes}
               colors={colors}
-              onEditMistake={handleEditMistake}
-              onDeleteMistake={handleDeleteMistake}
+              onNavigateToMistake={handleNavigateToMistake}
+              arabicFontLoaded={arabicFontLoaded}
             />
           ))
         )}
       </ScrollView>
-
-      {/* Edit Modal */}
-      {editingMistake && (
-        <MistakeModal
-          visible={showModal}
-          word={editingMistake.wordText}
-          wordIndex={editingMistake.wordIndex}
-          surahNumber={editingMistake.surahNumber}
-          surahName={editingMistake.surahName}
-          ayahNumber={editingMistake.ayahNumber}
-          onClose={handleCloseModal}
-          existingMistake={editingMistake}
-        />
-      )}
     </SafeAreaView>
   );
 };
@@ -315,9 +298,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    letterSpacing: 0.5,
   },
   clearAllText: {
     fontSize: 14,
@@ -339,8 +321,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  surahIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   folderTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   folderRight: {
@@ -350,57 +339,38 @@ const styles = StyleSheet.create({
   },
   countBadge: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
     minWidth: 28,
     alignItems: 'center',
   },
   countText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   folderContent: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
+    gap: spacing.sm,
   },
   mistakeCard: {
-    padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.sm,
-  },
-  mistakeHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: 10,
   },
-  mistakeInfo: {
-    flex: 1,
+  mistakeCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   mistakeWord: {
-    fontSize: 24,
-    fontFamily: 'Arabic',
+    fontSize: 20,
   },
   mistakeReference: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  deleteButton: {
-    padding: spacing.xs,
-  },
-  mistakeNote: {
-    fontSize: 14,
-    marginTop: spacing.sm,
-    fontStyle: 'italic',
-  },
-  mistakeNoNote: {
-    fontSize: 14,
-    marginTop: spacing.sm,
-    fontStyle: 'italic',
-  },
-  mistakeDate: {
-    fontSize: 11,
-    marginTop: spacing.sm,
+    fontSize: 13,
   },
   emptyState: {
     alignItems: 'center',
@@ -413,7 +383,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    marginTop: spacing.xs,
+    marginTop: spacing.md,
     textAlign: 'center',
   },
 });

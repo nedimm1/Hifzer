@@ -201,9 +201,11 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
 
   const renderArabicContent = () => (
     <View style={[styles.contentCard, { backgroundColor: colors.bgSecondary, width: width - 40 }]}>
-      <Text style={[styles.tapHint, { color: colors.textSecondary }]}>
-        Tap a word to mark a mistake
-      </Text>
+      {ayahMistakes.length === 0 && (
+        <Text style={[styles.tapHint, { color: colors.textSecondary }]}>
+          Tap a word to mark a mistake
+        </Text>
+      )}
       <View style={styles.wordsContainer}>
         {arabicWords.map((word, index) => {
           const hasMistake = mistakeWordIndices.includes(index);
@@ -212,10 +214,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
               key={`word-${index}`}
               onPress={() => handleWordTap(word, index)}
               activeOpacity={0.6}
-              style={[
-                styles.wordTouchable,
-                hasMistake && { backgroundColor: `${colors.danger}20`, borderRadius: 8 },
-              ]}
+              style={styles.wordTouchable}
             >
               <Text
                 style={{
@@ -372,38 +371,30 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
         {ayahMistakes.length > 0 && (
           <View style={styles.mistakesSection}>
             <Text style={[styles.mistakesSectionTitle, { color: colors.textSecondary }]}>
-              MISTAKES IN THIS AYAH ({ayahMistakes.length})
+              Mistakes ({ayahMistakes.length})
             </Text>
             {ayahMistakes.map((mistake) => (
               <TouchableOpacity
                 key={mistake.id}
-                style={[styles.mistakeItem, { backgroundColor: colors.bgSecondary }]}
+                style={[styles.mistakeItem, { backgroundColor: colors.bgSecondary, borderLeftColor: colors.danger }]}
                 onPress={() => handleEditMistake(mistake)}
                 activeOpacity={0.7}
               >
-                <View style={styles.mistakeItemHeader}>
+                <View style={styles.mistakeItemContent}>
                   <Text style={[styles.mistakeWord, { color: colors.danger, fontFamily: arabicFontLoaded ? 'Arabic' : undefined }]}>
                     {mistake.wordText}
                   </Text>
-                  <Text style={[styles.mistakeWordIndex, { color: colors.textSecondary }]}>
-                    Word {mistake.wordIndex + 1}
-                  </Text>
+                  {mistake.note ? (
+                    <Text style={[styles.mistakeNote, { color: colors.textPrimary }]}>
+                      {mistake.note}
+                    </Text>
+                  ) : (
+                    <Text style={[styles.mistakeNoNote, { color: colors.textSecondary }]}>
+                      Add a note...
+                    </Text>
+                  )}
                 </View>
-                {mistake.note ? (
-                  <Text style={[styles.mistakeNote, { color: colors.textPrimary }]}>
-                    {mistake.note}
-                  </Text>
-                ) : (
-                  <Text style={[styles.mistakeNoNote, { color: colors.textSecondary }]}>
-                    Tap to add a note
-                  </Text>
-                )}
-                <View style={styles.editHint}>
-                  <Ionicons name="pencil" size={14} color={colors.textSecondary} />
-                  <Text style={[styles.editHintText, { color: colors.textSecondary }]}>
-                    Tap to edit
-                  </Text>
-                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             ))}
           </View>
@@ -550,49 +541,36 @@ const styles = StyleSheet.create({
   },
   mistakesSection: {
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 24,
   },
   mistakesSectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    letterSpacing: 0.5,
     marginBottom: 12,
   },
   mistakeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
+    borderLeftWidth: 3,
   },
-  mistakeItemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  mistakeItemContent: {
+    flex: 1,
   },
   mistakeWord: {
-    fontSize: 24,
-    fontFamily: 'Arabic',
-  },
-  mistakeWordIndex: {
-    fontSize: 12,
+    fontSize: 28,
   },
   mistakeNote: {
     fontSize: 14,
-    marginTop: 8,
-    fontStyle: 'italic',
+    marginTop: 6,
   },
   mistakeNoNote: {
     fontSize: 14,
-    marginTop: 8,
+    marginTop: 6,
     fontStyle: 'italic',
-  },
-  editHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 4,
-  },
-  editHintText: {
-    fontSize: 12,
   },
 });
 

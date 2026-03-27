@@ -26,6 +26,11 @@ declare module '@kmaslesa/quran-metadata' {
     totalPages: number;
   }
 
+  interface AyahIndexRange {
+    startAyahIndex: number;
+    endAyahIndex: number;
+  }
+
   interface QuranMetaData {
     getSuraList(): Sura[];
     getSuraByIndex(index: number): Sura;
@@ -38,6 +43,8 @@ declare module '@kmaslesa/quran-metadata' {
     getJuzList(): any[];
     getJuzById(id: number): any;
     getPageInfo(pageNumber: number): any;
+    getSuraStartEndAyahIndex(suraNumber: number): AyahIndexRange;
+    getPageStartEndAyahIndex(page: number): AyahIndexRange;
   }
 
   const quranMetaData: QuranMetaData;

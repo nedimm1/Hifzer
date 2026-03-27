@@ -1,6 +1,5 @@
 import { useRouter } from 'expo-router';
-import { t } from 'i18next';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +13,9 @@ import { useSelector } from 'react-redux';
 
 import QuranPage from './QuranPage';
 import { RootState } from '../store';
+import { selectMistakes } from '../store/mistakesSlice';
 import { spacing } from '../constants/spacing';
+import chapters from '../data/chapters.json';
 
 const { width } = Dimensions.get('window');
 
@@ -29,11 +30,45 @@ interface QuranPagesProps {
   onTap?: () => void;
 }
 
+// Helper to get surah name from ayah key
+const getSurahName = (ayahKey: string): string => {
+  const surahNumber = parseInt(ayahKey.split(':')[0], 10);
+  const chapter = (chapters as any[]).find((c) => c.index.includes(surahNumber));
+  return chapter?.title || `Surah ${surahNumber}`;
+};
+
 const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap }) => {
   const router = useRouter();
   const { colors } = useSelector((state: RootState) => state.config);
+  const allMistakes = useSelector(selectMistakes);
+  const [tooltipY, setTooltipY] = useState<number>(0);
+  const [pointerBelow, setPointerBelow] = useState<boolean>(true);
+  const { height } = Dimensions.get('window');
 
   const initialScrollIndex = route.params.page ? route.params.page - 1 : 0;
+
+  // Get mistake count for selected ayah
+  const mistakeCount = useMemo(() => {
+    if (!selectedAyah) return 0;
+    const [surah, ayah] = selectedAyah.split(':').map(Number);
+    return allMistakes.filter(m => m.surahNumber === surah && m.ayahNumber === ayah).length;
+  }, [selectedAyah, allMistakes]);
+
+  const handleWordSelect = useCallback((ayahKey: string, yPosition: number) => {
+    const tooltipHeight = 80;
+    const padding = 100;
+
+    // Check if tooltip should appear above or below
+    if (yPosition + tooltipHeight + padding > height) {
+      // Show above the tap
+      setTooltipY(yPosition - tooltipHeight - 15);
+      setPointerBelow(false);
+    } else {
+      // Show below the tap
+      setTooltipY(yPosition + 25);
+      setPointerBelow(true);
+    }
+  }, [height]);
 
   const QuranPageRenderItem = useCallback(
     ({ item }: { item: number }) => (
@@ -42,10 +77,12 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
           page={item}
           selectedAyah={selectedAyah}
           setSelectedAyah={setSelectedAyah}
+          onWordSelect={handleWordSelect}
+          onTap={onTap}
         />
       </TouchableOpacity>
     ),
-    [selectedAyah, onTap]
+    [selectedAyah, onTap, handleWordSelect]
   );
 
   const goToReadingPage = () => {
@@ -54,6 +91,9 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
       params: { selectedAyah: JSON.stringify(selectedAyah) },
     });
   };
+
+  const ayahNumber = selectedAyah ? selectedAyah.split(':')[1] : '';
+  const surahName = selectedAyah ? getSurahName(selectedAyah) : '';
 
   const pages = Array.from({ length: 604 }, (_, index) => index + 1);
 
@@ -78,20 +118,56 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
         renderItem={QuranPageRenderItem}
       />
 
-      {/* Selected Ayah Button */}
-      {selectedAyah && (
-        <View style={styles.buttonContainer}>
+      {/* Speech Bubble Tooltip */}
+      {selectedAyah && tooltipY > 0 && (
+        <View style={[styles.bubbleContainer, { top: tooltipY }]}>
+          {/* Pointer above bubble */}
+          {pointerBelow && (
+            <View style={[styles.pointer, styles.pointerUp, { borderBottomColor: colors.bgSecondary }]} />
+          )}
+
           <TouchableOpacity
-            style={[styles.openButton, { backgroundColor: colors.accent }]}
+            style={[styles.bubble, { backgroundColor: colors.bgSecondary }]}
             onPress={goToReadingPage}
-            activeOpacity={0.8}
+            activeOpacity={0.95}
           >
-            <Ionicons name="book-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.buttonText}>
-              {t('open_ayah')} ({selectedAyah})
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+            <View style={styles.bubbleHeader}>
+              <Text style={[styles.bubbleSurah, { color: colors.textPrimary }]}>
+                {surahName}
+              </Text>
+              <Text style={[styles.bubbleAyah, { color: colors.textSecondary }]}>
+                Ayah {ayahNumber}
+              </Text>
+            </View>
+
+            <View style={styles.bubbleFooter}>
+              {mistakeCount > 0 ? (
+                <View style={styles.mistakeInfo}>
+                  <Ionicons name="alert-circle" size={14} color={colors.danger} />
+                  <Text style={[styles.mistakeText, { color: colors.danger }]}>
+                    {mistakeCount} {mistakeCount === 1 ? 'mistake' : 'mistakes'}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.mistakeInfo}>
+                  <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                  <Text style={[styles.mistakeText, { color: colors.success }]}>
+                    No mistakes
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.openHint}>
+                <Text style={[styles.openText, { color: colors.accent }]}>Open</Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.accent} />
+              </View>
+            </View>
           </TouchableOpacity>
+
+          {/* Pointer below bubble */}
+          {!pointerBelow && (
+            <View style={[styles.pointer, styles.pointerDown, { borderTopColor: colors.bgSecondary }]} />
+          )}
         </View>
       )}
     </View>
@@ -102,31 +178,76 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  buttonContainer: {
+  bubbleContainer: {
     position: 'absolute',
-    bottom: 40,
-    left: spacing.xl,
-    right: spacing.xl,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
     zIndex: 1000,
   },
-  openButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    gap: spacing.sm,
+  bubble: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 8,
+    minWidth: 160,
   },
-  buttonText: {
+  bubbleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  bubbleSurah: {
     fontWeight: '600',
-    color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
+  },
+  bubbleAyah: {
+    fontSize: 13,
+  },
+  bubbleFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  mistakeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  mistakeText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  openHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  openText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  pointer: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
+  pointerUp: {
+    borderBottomWidth: 10,
+    marginBottom: -1,
+  },
+  pointerDown: {
+    borderTopWidth: 10,
+    marginTop: -1,
   },
 });
 

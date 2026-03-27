@@ -95,6 +95,8 @@ interface QuranPageProps {
   page: number;
   selectedAyah: string | null;
   setSelectedAyah: (ayah: string | null) => void;
+  onWordSelect?: (ayahKey: string, yPosition: number) => void;
+  onTap?: () => void;
 }
 
 interface Word {
@@ -161,6 +163,8 @@ const QuranPage: React.FC<QuranPageProps> = ({
   page,
   selectedAyah,
   setSelectedAyah,
+  onWordSelect,
+  onTap,
 }) => {
   const [quranWords, setQuranWords] = useState<QuranWords | undefined>();
   const [isLoading, setLoading] = useState(true);
@@ -168,14 +172,36 @@ const QuranPage: React.FC<QuranPageProps> = ({
   const { colors } = useSelector((state: RootState) => state.config);
   const allMistakes = useSelector(selectMistakes);
 
-  // Create a set of ayahKeys that have mistakes for quick lookup
-  const ayahsWithMistakes = useMemo(() => {
-    const ayahKeys = new Set<string>();
+  // Create a map of ayahKey -> Set of word indices that have mistakes
+  const wordsWithMistakes = useMemo(() => {
+    const mistakeMap = new Map<string, Set<number>>();
     allMistakes.forEach((m) => {
-      ayahKeys.add(`${m.surahNumber}:${m.ayahNumber}`);
+      const ayahKey = `${m.surahNumber}:${m.ayahNumber}`;
+      if (!mistakeMap.has(ayahKey)) {
+        mistakeMap.set(ayahKey, new Set());
+      }
+      mistakeMap.get(ayahKey)!.add(m.wordIndex);
     });
-    return ayahKeys;
+    return mistakeMap;
   }, [allMistakes]);
+
+  // Compute word indices within each ayah for all words on the page
+  const wordIndicesInAyah = useMemo(() => {
+    const indices = new Map<string, number>();
+    const ayahWordCounts = new Map<string, number>();
+
+    quranWords?.ayahs?.forEach((line, lineIndex) => {
+      if (line.words) {
+        line.words.forEach((word, wordIndex) => {
+          const currentCount = ayahWordCounts.get(word.ayahKey) || 0;
+          indices.set(`${lineIndex}-${wordIndex}`, currentCount);
+          ayahWordCounts.set(word.ayahKey, currentCount + 1);
+        });
+      }
+    });
+
+    return indices;
+  }, [quranWords]);
 
   // Load Arabic font for bismillah
   useEffect(() => {
@@ -274,16 +300,24 @@ const QuranPage: React.FC<QuranPageProps> = ({
                 >
                   {line.words.map((word, wordIndex) => {
                     const isWordSelected = selectedAyah === word.ayahKey;
-                    const ayahHasMistake = ayahsWithMistakes.has(word.ayahKey);
+                    const wordIndexInAyah = wordIndicesInAyah.get(`${lineIndex}-${wordIndex}`);
+                    const wordHasMistake = wordsWithMistakes.get(word.ayahKey)?.has(wordIndexInAyah ?? -1) ?? false;
                     return (
                       <Text
                         key={`word-${lineIndex}-${wordIndex}`}
-                        onPress={() => {
-                          setSelectedAyah(isWordSelected ? null : word.ayahKey);
+                        onPress={onTap}
+                        onLongPress={(e) => {
+                          const yPosition = e.nativeEvent.pageY;
+                          if (isWordSelected) {
+                            setSelectedAyah(null);
+                          } else {
+                            setSelectedAyah(word.ayahKey);
+                            onWordSelect?.(word.ayahKey, yPosition);
+                          }
                         }}
                         style={[
                           isWordSelected && { color: colors.accent },
-                          ayahHasMistake && !isWordSelected && { color: colors.danger },
+                          wordHasMistake && !isWordSelected && { color: colors.danger },
                         ]}
                       >
                         {word.codeV1}
