@@ -1,11 +1,67 @@
 {
-  "search": "Search surah...",
-  "sura_search": "Search surah...",
-  "verses": "verses",
-  "page": "Page",
-  "pages": "Pages",
-  "selectPage": "Select Page",
-  "choose_page": "Choose page",
-  "open_ayah": "Open Ayah",
-  "cancel": "Cancel"
+  "tabs": {
+    "surahs": "Surahs",
+    "mistakes": "Mistakes",
+    "settings": "Settings"
+  },
+  "home": {
+    "searchSurah": "Search surah...",
+    "verses": "verses",
+    "page": "Page",
+    "pages": "Pages"
+  },
+  "mistakes": {
+    "title": "Mistakes",
+    "subtitle": "Track your recitation progress",
+    "total": "Total",
+    "surahs": "Surahs",
+    "bySurah": "By Surah",
+    "clearAll": "Clear All",
+    "clearAllTitle": "Clear All Mistakes",
+    "clearAllMessage": "Are you sure you want to delete all mistakes? This cannot be undone.",
+    "cancel": "Cancel",
+    "noMistakesYet": "No mistakes yet",
+    "noMistakesHint": "Open an ayah and tap on words to mark mistakes",
+    "mistake": "mistake",
+    "mistakesPlural": "mistakes",
+    "noMistakes": "No mistakes"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Customize your experience",
+    "appearance": "APPEARANCE",
+    "language": "LANGUAGE",
+    "appLanguage": "App Language",
+    "quranTranslation": "Quran Translation",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "reading": {
+    "translation": "Translation",
+    "tapToMark": "Tap a word to mark a mistake",
+    "ayah": "Ayah",
+    "of": "of"
+  },
+  "modal": {
+    "selectPage": "Select Page",
+    "choosePage": "Choose page",
+    "openAyah": "Open Ayah",
+    "cancel": "Cancel",
+    "open": "Open",
+    "saveChanges": "Save Changes",
+    "saveMistake": "Save Mistake",
+    "addNote": "Add a note (optional)",
+    "word": "Word"
+  },
+  "quranPage": {
+    "juz": "Juz",
+    "page": "Page",
+    "surah": "Surah"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry"
+  }
 }

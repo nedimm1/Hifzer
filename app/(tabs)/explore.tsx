@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
   StatusBar,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import i18n from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 import { spacing } from '../../constants/spacing';
 import { RootState } from '../../store';
@@ -19,32 +20,62 @@ import {
   toggleDarkMode,
   setTheme,
   setTranslationLanguage,
+  setAppLanguage,
   ThemeName,
   themeDisplayNames,
   themes,
   TranslationLanguage,
+  AppLanguage,
 } from '../../store/configSlice';
-import { translationLanguages } from '../../services/reading';
+import { changeLanguage } from '../../i18n';
 
 const themeOrder: ThemeName[] = ['default', 'mecca', 'medina', 'palestine', 'alAqsa'];
-const translationLangOrder: TranslationLanguage[] = ['bs', 'en', 'tr', 'de', 'sq'];
+
+const appLanguageItems = [
+  { label: '🇬🇧  English', value: 'en' },
+  { label: '🇧🇦  Bosanski', value: 'bs' },
+  { label: '🇹🇷  Türkçe', value: 'tr' },
+  { label: '🇩🇪  Deutsch', value: 'de' },
+  { label: '🇦🇱  Shqip', value: 'sq' },
+];
+
+const translationLanguageItems = [
+  { label: '🇬🇧  English', value: 'en' },
+  { label: '🇧🇦  Bosanski', value: 'bs' },
+  { label: '🇹🇷  Türkçe', value: 'tr' },
+  { label: '🇩🇪  Deutsch', value: 'de' },
+  { label: '🇦🇱  Shqip', value: 'sq' },
+];
 
 export default function SettingsScreen() {
-  const { colors, isDarkMode, themeName, translationLanguage } = useSelector(
+  const { colors, isDarkMode, themeName, translationLanguage, appLanguage } = useSelector(
     (state: RootState) => state.config
   );
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
+  const [appLangOpen, setAppLangOpen] = useState(false);
+  const [transLangOpen, setTransLangOpen] = useState(false);
+  const [appLangValue, setAppLangValue] = useState<string>(appLanguage);
+  const [transLangValue, setTransLangValue] = useState<string>(translationLanguage);
+
+  const handleAppLanguageChange = (value: string | null) => {
+    if (value) {
+      changeLanguage(value as AppLanguage);
+      dispatch(setAppLanguage(value as AppLanguage));
+      setAppLangValue(value);
+    }
   };
 
   const handleThemeChange = (theme: ThemeName) => {
     dispatch(setTheme(theme));
   };
 
-  const handleTranslationLanguageChange = (lang: TranslationLanguage) => {
-    dispatch(setTranslationLanguage(lang));
+  const handleTranslationLanguageChange = (value: string | null) => {
+    if (value) {
+      dispatch(setTranslationLanguage(value as TranslationLanguage));
+      setTransLangValue(value);
+    }
   };
 
   return (
@@ -61,14 +92,14 @@ export default function SettingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
-            Settings
+            {t('settings.title')}
           </Text>
         </View>
 
         {/* Appearance Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            APPEARANCE
+            {t('settings.appearance')}
           </Text>
 
           {/* Dark Mode Toggle */}
@@ -104,7 +135,7 @@ export default function SettingsScreen() {
             style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
           >
             <Text style={[styles.cardLabel, { color: colors.textPrimary }]}>
-              Theme
+              {t('settings.theme')}
             </Text>
             <ScrollView
               horizontal
@@ -161,103 +192,117 @@ export default function SettingsScreen() {
         </View>
 
         {/* Language Section */}
-        <View style={styles.section}>
+        <View style={[styles.section, { zIndex: 2000 }]}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            LANGUAGE
+            {t('settings.language')}
           </Text>
 
           {/* App Language */}
           <View
-            style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
+            style={[styles.settingCard, { backgroundColor: colors.bgSecondary, zIndex: 2000 }]}
           >
-            <Text style={[styles.cardLabel, { color: colors.textPrimary }]}>
-              App Language
-            </Text>
-            <View style={styles.buttonGroup}>
-              {[
-                { code: 'en', label: 'English' },
-                { code: 'bs', label: 'Bosanski' },
-              ].map((lang) => {
-                const isSelected = i18n.language === lang.code;
-                return (
-                  <TouchableOpacity
-                    key={lang.code}
-                    style={[
-                      styles.langButton,
-                      {
-                        backgroundColor: isSelected
-                          ? colors.accent
-                          : colors.bgPrimary,
-                        borderColor: isSelected ? colors.accent : colors.border,
-                      },
-                    ]}
-                    onPress={() => handleLanguageChange(lang.code)}
-                  >
-                    <Text
-                      style={[
-                        styles.langButtonText,
-                        { color: isSelected ? '#FFFFFF' : colors.textPrimary },
-                      ]}
-                    >
-                      {lang.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={styles.dropdownHeader}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
+                <Ionicons name="language" size={18} color="#FFFFFF" />
+              </View>
+              <Text style={[styles.cardLabel, { color: colors.textPrimary, marginBottom: 0 }]}>
+                {t('settings.appLanguage')}
+              </Text>
             </View>
+            <DropDownPicker
+              open={appLangOpen}
+              value={appLangValue}
+              items={appLanguageItems}
+              setOpen={setAppLangOpen}
+              setValue={setAppLangValue}
+              onSelectItem={(item) => handleAppLanguageChange(item.value as string)}
+              style={{
+                backgroundColor: colors.bgPrimary,
+                borderColor: colors.border,
+                borderRadius: 12,
+                minHeight: 50,
+              }}
+              textStyle={{
+                color: colors.textPrimary,
+                fontSize: 16,
+              }}
+              dropDownContainerStyle={{
+                backgroundColor: colors.bgPrimary,
+                borderColor: colors.border,
+                borderRadius: 12,
+              }}
+              listItemLabelStyle={{
+                color: colors.textPrimary,
+              }}
+              selectedItemContainerStyle={{
+                backgroundColor: colors.accent + '20',
+              }}
+              ArrowDownIconComponent={() => (
+                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+              )}
+              ArrowUpIconComponent={() => (
+                <Ionicons name="chevron-up" size={20} color={colors.accent} />
+              )}
+              TickIconComponent={() => (
+                <Ionicons name="checkmark" size={18} color={colors.accent} />
+              )}
+              zIndex={2000}
+              zIndexInverse={1000}
+            />
           </View>
 
           {/* Translation Language */}
           <View
-            style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}
+            style={[styles.settingCard, { backgroundColor: colors.bgSecondary, zIndex: 1000 }]}
           >
-            <Text style={[styles.cardLabel, { color: colors.textPrimary }]}>
-              Quran Translation
-            </Text>
-            <View style={styles.translationGrid}>
-              {translationLangOrder.map((lang) => {
-                const isSelected = translationLanguage === lang;
-                const langInfo = translationLanguages[lang];
-
-                return (
-                  <TouchableOpacity
-                    key={lang}
-                    style={[
-                      styles.translationButton,
-                      {
-                        backgroundColor: isSelected
-                          ? colors.accent
-                          : colors.bgPrimary,
-                        borderColor: isSelected ? colors.accent : colors.border,
-                      },
-                    ]}
-                    onPress={() => handleTranslationLanguageChange(lang)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.translationNative,
-                        { color: isSelected ? '#FFFFFF' : colors.textPrimary },
-                      ]}
-                    >
-                      {langInfo.nativeName}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.translationName,
-                        {
-                          color: isSelected
-                            ? 'rgba(255,255,255,0.7)'
-                            : colors.textSecondary,
-                        },
-                      ]}
-                    >
-                      {langInfo.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={styles.dropdownHeader}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
+                <Ionicons name="book" size={18} color="#FFFFFF" />
+              </View>
+              <Text style={[styles.cardLabel, { color: colors.textPrimary, marginBottom: 0 }]}>
+                {t('settings.quranTranslation')}
+              </Text>
             </View>
+            <DropDownPicker
+              open={transLangOpen}
+              value={transLangValue}
+              items={translationLanguageItems}
+              setOpen={setTransLangOpen}
+              setValue={setTransLangValue}
+              onSelectItem={(item) => handleTranslationLanguageChange(item.value as string)}
+              style={{
+                backgroundColor: colors.bgPrimary,
+                borderColor: colors.border,
+                borderRadius: 12,
+                minHeight: 50,
+              }}
+              textStyle={{
+                color: colors.textPrimary,
+                fontSize: 16,
+              }}
+              dropDownContainerStyle={{
+                backgroundColor: colors.bgPrimary,
+                borderColor: colors.border,
+                borderRadius: 12,
+              }}
+              listItemLabelStyle={{
+                color: colors.textPrimary,
+              }}
+              selectedItemContainerStyle={{
+                backgroundColor: colors.accent + '20',
+              }}
+              ArrowDownIconComponent={() => (
+                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+              )}
+              ArrowUpIconComponent={() => (
+                <Ionicons name="chevron-up" size={20} color={colors.accent} />
+              )}
+              TickIconComponent={() => (
+                <Ionicons name="checkmark" size={18} color={colors.accent} />
+              )}
+              zIndex={1000}
+              zIndexInverse={2000}
+            />
           </View>
         </View>
 
@@ -327,6 +372,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: spacing.md,
   },
+  dropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   themeScroll: {
     gap: spacing.sm,
     paddingRight: spacing.md,
@@ -355,42 +405,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  langButton: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  langButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  translationGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  translationButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 10,
-    borderWidth: 1,
-    minWidth: 90,
-    alignItems: 'center',
-  },
-  translationNative: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  translationName: {
-    fontSize: 10,
-    marginTop: 2,
   },
   footer: {
     height: 100,

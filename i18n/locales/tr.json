@@ -1,0 +1,67 @@
+{
+  "tabs": {
+    "surahs": "Sureler",
+    "mistakes": "Hatalar",
+    "settings": "Ayarlar"
+  },
+  "home": {
+    "searchSurah": "Sure ara...",
+    "verses": "ayet",
+    "page": "Sayfa",
+    "pages": "Sayfalar"
+  },
+  "mistakes": {
+    "title": "Hatalar",
+    "subtitle": "Okuma ilerlemenizi takip edin",
+    "total": "Toplam",
+    "surahs": "Sureler",
+    "bySurah": "Sureye Göre",
+    "clearAll": "Tümünü Sil",
+    "clearAllTitle": "Tüm Hataları Sil",
+    "clearAllMessage": "Tüm hataları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "cancel": "İptal",
+    "noMistakesYet": "Henüz hata yok",
+    "noMistakesHint": "Bir ayet açın ve hata işaretlemek için kelimelere dokunun",
+    "mistake": "hata",
+    "mistakesPlural": "hata",
+    "noMistakes": "Hata yok"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "subtitle": "Deneyiminizi özelleştirin",
+    "appearance": "GÖRÜNÜM",
+    "language": "DİL",
+    "appLanguage": "Uygulama Dili",
+    "quranTranslation": "Kur'an Çevirisi",
+    "theme": "Tema",
+    "light": "Açık",
+    "dark": "Koyu"
+  },
+  "reading": {
+    "translation": "Çeviri",
+    "tapToMark": "Hata işaretlemek için kelimeye dokunun",
+    "ayah": "Ayet",
+    "of": "/"
+  },
+  "modal": {
+    "selectPage": "Sayfa Seç",
+    "choosePage": "Sayfa seçin",
+    "openAyah": "Ayeti Aç",
+    "cancel": "İptal",
+    "open": "Aç",
+    "saveChanges": "Değişiklikleri Kaydet",
+    "saveMistake": "Hatayı Kaydet",
+    "addNote": "Not ekle (isteğe bağlı)",
+    "word": "Kelime"
+  },
+  "quranPage": {
+    "juz": "Cüz",
+    "page": "Sayfa",
+    "surah": "Sure"
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "retry": "Tekrar Dene"
+  }
+}

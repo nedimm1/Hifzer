@@ -8,9 +8,9 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import 'react-native-reanimated';
 
 import { store, RootState } from '../store';
-import { initializeConfig, ThemeName, TranslationLanguage } from '../store/configSlice';
+import { initializeConfig, ThemeName, TranslationLanguage, AppLanguage } from '../store/configSlice';
 import { initializeMistakes } from '../store/mistakesSlice';
-import '../i18n';
+import i18n, { changeLanguage } from '../i18n';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -25,19 +25,24 @@ function AppContent() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const [savedTheme, savedDarkMode, savedTranslationLang, savedMistakes] = await Promise.all([
+        const [savedTheme, savedDarkMode, savedTranslationLang, savedAppLang, savedMistakes] = await Promise.all([
           AsyncStorage.getItem('theme'),
           AsyncStorage.getItem('isDarkMode'),
           AsyncStorage.getItem('translationLanguage'),
+          AsyncStorage.getItem('appLanguage'),
           AsyncStorage.getItem('mistakes'),
         ]);
 
         const themeName = (savedTheme as ThemeName) || 'default';
         const isDarkMode = savedDarkMode === 'true';
         const translationLanguage = (savedTranslationLang as TranslationLanguage) || 'bs';
+        const appLanguage = (savedAppLang as AppLanguage) || 'en';
         const mistakes = savedMistakes ? JSON.parse(savedMistakes) : [];
 
-        dispatch(initializeConfig({ themeName, isDarkMode, translationLanguage }));
+        // Set i18n language
+        changeLanguage(appLanguage);
+
+        dispatch(initializeConfig({ themeName, isDarkMode, translationLanguage, appLanguage }));
         dispatch(initializeMistakes(mistakes));
       } catch (error) {
         console.log('Error loading config:', error);

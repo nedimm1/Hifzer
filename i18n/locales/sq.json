@@ -1,0 +1,67 @@
+{
+  "tabs": {
+    "surahs": "Suret",
+    "mistakes": "Gabimet",
+    "settings": "Cilësimet"
+  },
+  "home": {
+    "searchSurah": "Kërko sure...",
+    "verses": "ajete",
+    "page": "Faqe",
+    "pages": "Faqet"
+  },
+  "mistakes": {
+    "title": "Gabimet",
+    "subtitle": "Ndiq progresin tënd të leximit",
+    "total": "Gjithsej",
+    "surahs": "Suret",
+    "bySurah": "Sipas Sures",
+    "clearAll": "Fshi të gjitha",
+    "clearAllTitle": "Fshi të gjitha gabimet",
+    "clearAllMessage": "A jeni i sigurt që doni të fshini të gjitha gabimet? Kjo nuk mund të zhbëhet.",
+    "cancel": "Anulo",
+    "noMistakesYet": "Ende nuk ka gabime",
+    "noMistakesHint": "Hap një ajet dhe prek fjalët për të shënuar gabimet",
+    "mistake": "gabim",
+    "mistakesPlural": "gabime",
+    "noMistakes": "Nuk ka gabime"
+  },
+  "settings": {
+    "title": "Cilësimet",
+    "subtitle": "Personalizo përvojën tënde",
+    "appearance": "PAMJA",
+    "language": "GJUHA",
+    "appLanguage": "Gjuha e aplikacionit",
+    "quranTranslation": "Përkthimi i Kuranit",
+    "theme": "Tema",
+    "light": "E ndritshme",
+    "dark": "E errët"
+  },
+  "reading": {
+    "translation": "Përkthimi",
+    "tapToMark": "Prek një fjalë për të shënuar gabim",
+    "ayah": "Ajet",
+    "of": "nga"
+  },
+  "modal": {
+    "selectPage": "Zgjidh faqen",
+    "choosePage": "Zgjidh faqen",
+    "openAyah": "Hap ajetin",
+    "cancel": "Anulo",
+    "open": "Hap",
+    "saveChanges": "Ruaj ndryshimet",
+    "saveMistake": "Ruaj gabimin",
+    "addNote": "Shto shënim (opsionale)",
+    "word": "Fjala"
+  },
+  "quranPage": {
+    "juz": "Xhuzi",
+    "page": "Faqe",
+    "surah": "Sure"
+  },
+  "common": {
+    "loading": "Duke u ngarkuar...",
+    "error": "Gabim",
+    "retry": "Provo përsëri"
+  }
+}

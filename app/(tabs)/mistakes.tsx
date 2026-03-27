@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadAsync } from 'expo-font';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import quranMetaData from '@kmaslesa/quran-metadata';
 
 import { spacing } from '../../constants/spacing';
@@ -135,6 +136,7 @@ const MistakesScreen = () => {
   const statistics = useSelector(selectMistakeStatistics);
   const dispatch = useDispatch();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [arabicFontLoaded, setArabicFontLoaded] = useState(false);
 
@@ -163,12 +165,12 @@ const MistakesScreen = () => {
     if (statistics.totalMistakes === 0) return;
 
     Alert.alert(
-      'Clear All Mistakes',
-      'Are you sure you want to delete all mistakes? This cannot be undone.',
+      t('mistakes.clearAllTitle'),
+      t('mistakes.clearAllMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('mistakes.cancel'), style: 'cancel' },
         {
-          text: 'Clear All',
+          text: t('mistakes.clearAll'),
           style: 'destructive',
           onPress: () => dispatch(clearAllMistakes()),
         },
@@ -189,22 +191,22 @@ const MistakesScreen = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Mistakes</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{t('mistakes.title')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Track your recitation progress
+            {t('mistakes.subtitle')}
           </Text>
         </View>
 
         {/* Statistics */}
         <View style={styles.statsRow}>
           <StatCard
-            label="Total"
+            label={t('mistakes.total')}
             value={statistics.totalMistakes}
             icon="alert-circle"
             colors={colors}
           />
           <StatCard
-            label="Surahs"
+            label={t('mistakes.surahs')}
             value={statistics.surahsAffected}
             icon="book"
             colors={colors}
@@ -215,10 +217,10 @@ const MistakesScreen = () => {
         {groupedMistakes.length > 0 && (
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-              By Surah
+              {t('mistakes.bySurah')}
             </Text>
             <TouchableOpacity onPress={handleClearAll}>
-              <Text style={[styles.clearAllText, { color: colors.danger }]}>Clear All</Text>
+              <Text style={[styles.clearAllText, { color: colors.danger }]}>{t('mistakes.clearAll')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -227,9 +229,9 @@ const MistakesScreen = () => {
         {groupedMistakes.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-circle" size={64} color={colors.accent} />
-            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No mistakes yet</Text>
+            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>{t('mistakes.noMistakesYet')}</Text>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              Open an ayah and tap on words to mark mistakes
+              {t('mistakes.noMistakesHint')}
             </Text>
           </View>
         ) : (

@@ -189,12 +189,14 @@ export const themeDisplayNames: Record<ThemeName, string> = {
 };
 
 export type TranslationLanguage = 'en' | 'bs' | 'tr' | 'de' | 'sq';
+export type AppLanguage = 'en' | 'bs' | 'tr' | 'de' | 'sq';
 
 interface ConfigState {
   colors: Colors;
   isDarkMode: boolean;
   themeName: ThemeName;
   translationLanguage: TranslationLanguage;
+  appLanguage: AppLanguage;
   isInitialized: boolean;
 }
 
@@ -203,6 +205,7 @@ const initialState: ConfigState = {
   isDarkMode: false,
   themeName: 'default',
   translationLanguage: 'bs',
+  appLanguage: 'en',
   isInitialized: false,
 };
 
@@ -227,21 +230,31 @@ const configSlice = createSlice({
     },
     initializeConfig: (
       state,
-      action: PayloadAction<{ themeName: ThemeName; isDarkMode: boolean; translationLanguage?: TranslationLanguage }>
+      action: PayloadAction<{
+        themeName: ThemeName;
+        isDarkMode: boolean;
+        translationLanguage?: TranslationLanguage;
+        appLanguage?: AppLanguage;
+      }>
     ) => {
       state.themeName = action.payload.themeName;
       state.isDarkMode = action.payload.isDarkMode;
       state.colors = themes[action.payload.themeName][action.payload.isDarkMode ? 'dark' : 'light'];
       state.translationLanguage = action.payload.translationLanguage || 'bs';
+      state.appLanguage = action.payload.appLanguage || 'en';
       state.isInitialized = true;
     },
     setTranslationLanguage: (state, action: PayloadAction<TranslationLanguage>) => {
       state.translationLanguage = action.payload;
       AsyncStorage.setItem('translationLanguage', action.payload);
     },
+    setAppLanguage: (state, action: PayloadAction<AppLanguage>) => {
+      state.appLanguage = action.payload;
+      AsyncStorage.setItem('appLanguage', action.payload);
+    },
   },
 });
 
-export const { setTheme, toggleDarkMode, setDarkMode, initializeConfig, setTranslationLanguage } = configSlice.actions;
+export const { setTheme, toggleDarkMode, setDarkMode, initializeConfig, setTranslationLanguage, setAppLanguage } = configSlice.actions;
 export { themes };
 export default configSlice.reducer;

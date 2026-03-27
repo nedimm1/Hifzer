@@ -1,0 +1,67 @@
+{
+  "tabs": {
+    "surahs": "Suren",
+    "mistakes": "Fehler",
+    "settings": "Einstellungen"
+  },
+  "home": {
+    "searchSurah": "Sure suchen...",
+    "verses": "Verse",
+    "page": "Seite",
+    "pages": "Seiten"
+  },
+  "mistakes": {
+    "title": "Fehler",
+    "subtitle": "Verfolge deinen Rezitationsfortschritt",
+    "total": "Gesamt",
+    "surahs": "Suren",
+    "bySurah": "Nach Sure",
+    "clearAll": "Alle löschen",
+    "clearAllTitle": "Alle Fehler löschen",
+    "clearAllMessage": "Bist du sicher, dass du alle Fehler löschen möchtest? Dies kann nicht rückgängig gemacht werden.",
+    "cancel": "Abbrechen",
+    "noMistakesYet": "Noch keine Fehler",
+    "noMistakesHint": "Öffne einen Vers und tippe auf Wörter, um Fehler zu markieren",
+    "mistake": "Fehler",
+    "mistakesPlural": "Fehler",
+    "noMistakes": "Keine Fehler"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Passe dein Erlebnis an",
+    "appearance": "DARSTELLUNG",
+    "language": "SPRACHE",
+    "appLanguage": "App-Sprache",
+    "quranTranslation": "Koran-Übersetzung",
+    "theme": "Design",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "reading": {
+    "translation": "Übersetzung",
+    "tapToMark": "Tippe auf ein Wort, um einen Fehler zu markieren",
+    "ayah": "Vers",
+    "of": "von"
+  },
+  "modal": {
+    "selectPage": "Seite auswählen",
+    "choosePage": "Seite wählen",
+    "openAyah": "Vers öffnen",
+    "cancel": "Abbrechen",
+    "open": "Öffnen",
+    "saveChanges": "Änderungen speichern",
+    "saveMistake": "Fehler speichern",
+    "addNote": "Notiz hinzufügen (optional)",
+    "word": "Wort"
+  },
+  "quranPage": {
+    "juz": "Juz",
+    "page": "Seite",
+    "surah": "Sure"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "retry": "Erneut versuchen"
+  }
+}

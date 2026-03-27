@@ -1,11 +1,67 @@
 {
-  "search": "Pretrazi suru...",
-  "sura_search": "Pretrazi suru...",
-  "verses": "ajeta",
-  "page": "Stranica",
-  "pages": "Stranice",
-  "selectPage": "Odaberi stranicu",
-  "choose_page": "Odaberi stranicu",
-  "open_ayah": "Otvori ajet",
-  "cancel": "Odustani"
+  "tabs": {
+    "surahs": "Sure",
+    "mistakes": "Greške",
+    "settings": "Postavke"
+  },
+  "home": {
+    "searchSurah": "Pretraži suru...",
+    "verses": "ajeta",
+    "page": "Stranica",
+    "pages": "Stranice"
+  },
+  "mistakes": {
+    "title": "Greške",
+    "subtitle": "Prati svoj napredak u učenju",
+    "total": "Ukupno",
+    "surahs": "Sure",
+    "bySurah": "Po Suri",
+    "clearAll": "Obriši sve",
+    "clearAllTitle": "Obriši sve greške",
+    "clearAllMessage": "Jeste li sigurni da želite obrisati sve greške? Ovo se ne može poništiti.",
+    "cancel": "Odustani",
+    "noMistakesYet": "Još nema grešaka",
+    "noMistakesHint": "Otvori ajet i dodirni riječi da označiš greške",
+    "mistake": "greška",
+    "mistakesPlural": "greške",
+    "noMistakes": "Nema grešaka"
+  },
+  "settings": {
+    "title": "Postavke",
+    "subtitle": "Prilagodi svoje iskustvo",
+    "appearance": "IZGLED",
+    "language": "JEZIK",
+    "appLanguage": "Jezik aplikacije",
+    "quranTranslation": "Prijevod Kur'ana",
+    "theme": "Tema",
+    "light": "Svijetla",
+    "dark": "Tamna"
+  },
+  "reading": {
+    "translation": "Prijevod",
+    "tapToMark": "Dodirni riječ da označiš grešku",
+    "ayah": "Ajet",
+    "of": "od"
+  },
+  "modal": {
+    "selectPage": "Odaberi stranicu",
+    "choosePage": "Odaberi stranicu",
+    "openAyah": "Otvori ajet",
+    "cancel": "Odustani",
+    "open": "Otvori",
+    "saveChanges": "Spremi promjene",
+    "saveMistake": "Spremi grešku",
+    "addNote": "Dodaj bilješku (opcionalno)",
+    "word": "Riječ"
+  },
+  "quranPage": {
+    "juz": "Džuz",
+    "page": "Stranica",
+    "surah": "Sura"
+  },
+  "common": {
+    "loading": "Učitavanje...",
+    "error": "Greška",
+    "retry": "Pokušaj ponovo"
+  }
 }
