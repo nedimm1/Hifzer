@@ -14,12 +14,16 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 import { loadAsync } from 'expo-font';
+import { useTranslation } from 'react-i18next';
+
+import quranMetaData from '@kmaslesa/quran-metadata';
 
 import { spacing } from '../constants/spacing';
 import { quranFonts } from '../data/quranFonts';
 import { RootState } from '../store';
 import { addMistake, updateMistakeNote, deleteMistake } from '../store/mistakesSlice';
 import { Mistake } from '../types/mistakes';
+import { getSurahTransliteration } from '../utils/surahName';
 
 interface MistakeModalProps {
   visible: boolean;
@@ -46,8 +50,13 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
   const [arabicFontLoaded, setArabicFontLoaded] = useState(false);
   const { colors } = useSelector((state: RootState) => state.config);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const isEditing = !!existingMistake;
+
+  // Get transliterated surah name
+  const sura = quranMetaData.getSuraByIndex(surahNumber);
+  const surahNameTransliterated = sura ? getSurahTransliteration(sura.name) : '';
 
   // Load Arabic font
   useEffect(() => {
@@ -96,10 +105,10 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
   const handleDelete = () => {
     if (!existingMistake) return;
 
-    Alert.alert('Delete Mistake', 'Are you sure you want to delete this mistake?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('mistakeModal.deleteMistake'), t('mistakeModal.deleteConfirm'), [
+      { text: t('mistakeModal.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('mistakeModal.delete'),
         style: 'destructive',
         onPress: () => {
           dispatch(deleteMistake(existingMistake.id));
@@ -129,7 +138,7 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>
-                {isEditing ? 'Edit Mistake' : 'Mark Mistake'}
+                {isEditing ? t('mistakeModal.editMistake') : t('mistakeModal.markMistake')}
               </Text>
               <TouchableOpacity
                 onPress={handleClose}
@@ -143,13 +152,13 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
             <View style={[styles.wordPreview, { backgroundColor: colors.bgSecondary }]}>
               <Text style={[styles.wordText, { color: colors.danger, fontFamily: arabicFontLoaded ? 'Arabic' : undefined }]}>{word}</Text>
               <Text style={[styles.reference, { color: colors.textSecondary }]}>
-                {surahName} - Ayah {ayahNumber}, Word {wordIndex + 1}
+                {surahNameTransliterated} - {t('mistakeModal.ayah')} {ayahNumber}, {t('mistakeModal.word')} {wordIndex + 1}
               </Text>
             </View>
 
             {/* Note Input */}
             <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
-              Note (optional)
+              {t('mistakeModal.noteOptional')}
             </Text>
             <TextInput
               style={[
@@ -160,7 +169,7 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
                   borderColor: colors.border,
                 },
               ]}
-              placeholder="Add a note about this mistake..."
+              placeholder={t('mistakeModal.notePlaceholder')}
               placeholderTextColor={colors.textSecondary}
               value={note}
               onChangeText={setNote}
@@ -183,7 +192,7 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
                     style={[styles.button, styles.saveButton, { backgroundColor: colors.accent, flex: 2 }]}
                     onPress={handleSave}
                   >
-                    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Save Changes</Text>
+                    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>{t('mistakeModal.saveChanges')}</Text>
                   </TouchableOpacity>
                 </>
               ) : (
@@ -192,13 +201,13 @@ const MistakeModal: React.FC<MistakeModalProps> = ({
                     style={[styles.button, styles.cancelButton, { borderColor: colors.border }]}
                     onPress={handleClose}
                   >
-                    <Text style={[styles.buttonText, { color: colors.textSecondary }]}>Cancel</Text>
+                    <Text style={[styles.buttonText, { color: colors.textSecondary }]}>{t('mistakeModal.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.saveButton, { backgroundColor: colors.accent }]}
                     onPress={handleSave}
                   >
-                    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Save Mistake</Text>
+                    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>{t('mistakeModal.saveMistake')}</Text>
                   </TouchableOpacity>
                 </>
               )}

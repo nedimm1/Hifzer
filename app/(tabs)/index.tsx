@@ -45,6 +45,7 @@ const SuraList = memo(function SuraList({
   suraSearch: string;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useSelector((state: RootState) => state.config);
 
   const filteredList = useMemo(() => {
@@ -72,7 +73,7 @@ const SuraList = memo(function SuraList({
         <View style={styles.emptyState}>
           <Ionicons name="search-outline" size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No surahs found
+            {t('home.noSurahsFound')}
           </Text>
         </View>
       }
@@ -132,10 +133,10 @@ const SurahListScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.textPrimary }]}>
-          Quran
+          {t('home.title')}
         </Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          114 Surahs
+          {t('home.subtitle')}
         </Text>
       </View>
 
@@ -159,7 +160,7 @@ const SurahListScreen = () => {
           <TextInput
             onChangeText={setSuraSearch}
             value={suraSearch}
-            placeholder={t('sura_search')}
+            placeholder={t('home.searchSurah')}
             style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholderTextColor={colors.textSecondary}
             returnKeyType="search"

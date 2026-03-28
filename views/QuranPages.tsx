@@ -10,12 +10,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
+
+import quranMetaData from '@kmaslesa/quran-metadata';
 
 import QuranPage from './QuranPage';
 import { RootState } from '../store';
 import { selectMistakes } from '../store/mistakesSlice';
 import { spacing } from '../constants/spacing';
-import chapters from '../data/chapters.json';
+import { getSurahTransliteration } from '../utils/surahName';
 
 const { width } = Dimensions.get('window');
 
@@ -34,12 +37,14 @@ interface QuranPagesProps {
 // Helper to get surah name from ayah key
 const getSurahName = (ayahKey: string): string => {
   const surahNumber = parseInt(ayahKey.split(':')[0], 10);
-  const chapter = (chapters as any[]).find((c) => c.index.includes(surahNumber));
-  return chapter?.title || `Surah ${surahNumber}`;
+  const sura = quranMetaData.getSuraByIndex(surahNumber);
+  if (!sura) return `Surah ${surahNumber}`;
+  return getSurahTransliteration(sura.name);
 };
 
 const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap, onPageChange }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useSelector((state: RootState) => state.config);
   const allMistakes = useSelector(selectMistakes);
   const [tooltipY, setTooltipY] = useState<number>(0);
@@ -155,7 +160,7 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
                 {surahName}
               </Text>
               <Text style={[styles.bubbleAyah, { color: colors.textSecondary }]}>
-                Ayah {ayahNumber}
+                {t('reading.ayah')} {ayahNumber}
               </Text>
             </View>
 
@@ -164,20 +169,20 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
                 <View style={styles.mistakeInfo}>
                   <Ionicons name="alert-circle" size={14} color={colors.danger} />
                   <Text style={[styles.mistakeText, { color: colors.danger }]}>
-                    {mistakeCount} {mistakeCount === 1 ? 'mistake' : 'mistakes'}
+                    {mistakeCount} {mistakeCount === 1 ? t('mistakes.mistake') : t('mistakes.mistakesPlural')}
                   </Text>
                 </View>
               ) : (
                 <View style={styles.mistakeInfo}>
                   <Ionicons name="checkmark-circle" size={14} color={colors.success} />
                   <Text style={[styles.mistakeText, { color: colors.success }]}>
-                    No mistakes
+                    {t('mistakes.noMistakes')}
                   </Text>
                 </View>
               )}
 
               <View style={styles.openHint}>
-                <Text style={[styles.openText, { color: colors.accent }]}>Open</Text>
+                <Text style={[styles.openText, { color: colors.accent }]}>{t('modal.open')}</Text>
                 <Ionicons name="chevron-forward" size={14} color={colors.accent} />
               </View>
             </View>

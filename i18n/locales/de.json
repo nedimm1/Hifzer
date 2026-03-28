@@ -5,8 +5,14 @@
     "settings": "Einstellungen"
   },
   "home": {
+    "title": "Koran",
+    "subtitle": "114 Suren",
     "searchSurah": "Sure suchen...",
+    "noSurahsFound": "Keine Sure gefunden",
     "verses": "Verse",
+    "ayahs": "Verse",
+    "meccan": "Mekkanisch",
+    "medinan": "Medinensisch",
     "page": "Seite",
     "pages": "Seiten"
   },
@@ -38,10 +44,13 @@
     "dark": "Dunkel"
   },
   "reading": {
+    "arabic": "Arabisch",
     "translation": "Übersetzung",
     "tapToMark": "Tippe auf ein Wort, um einen Fehler zu markieren",
     "ayah": "Vers",
-    "of": "von"
+    "of": "von",
+    "mistakesCount": "Fehler",
+    "addNote": "Notiz hinzufügen..."
   },
   "modal": {
     "selectPage": "Seite auswählen",
@@ -63,5 +72,19 @@
     "loading": "Laden...",
     "error": "Fehler",
     "retry": "Erneut versuchen"
+  },
+  "mistakeModal": {
+    "markMistake": "Fehler markieren",
+    "editMistake": "Fehler bearbeiten",
+    "ayah": "Vers",
+    "word": "Wort",
+    "noteOptional": "Notiz (optional)",
+    "notePlaceholder": "Notiz zu diesem Fehler hinzufügen...",
+    "cancel": "Abbrechen",
+    "saveMistake": "Fehler speichern",
+    "saveChanges": "Änderungen speichern",
+    "deleteMistake": "Fehler löschen",
+    "deleteConfirm": "Bist du sicher, dass du diesen Fehler löschen möchtest?",
+    "delete": "Löschen"
   }
 }

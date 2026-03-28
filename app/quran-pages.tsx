@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, BackHandler, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { loadAsync } from 'expo-font';
 import quranMetaData from '@kmaslesa/quran-metadata';
@@ -10,10 +11,12 @@ import quranMetaData from '@kmaslesa/quran-metadata';
 import { RootState } from '../store';
 import QuranPages from '../views/QuranPages';
 import { quranFonts } from '../data/quranFonts';
+import { getSurahTransliteration } from '../utils/surahName';
 
 export default function QuranPagesScreen() {
   const { page } = useLocalSearchParams<{ page: string }>();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { colors } = useSelector((state: RootState) => state.config);
   const insets = useSafeAreaInsets();
   const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
@@ -24,7 +27,9 @@ export default function QuranPagesScreen() {
 
   const surahs = quranMetaData.getSuraByPageNumber(currentPage);
   const surahNameArabic = surahs?.[0]?.name?.arabic || '';
-  const surahNameEnglish = surahs?.[0]?.name?.english || '';
+  const surahNameTransliterated = surahs?.[0]?.name
+    ? getSurahTransliteration(surahs[0].name)
+    : '';
   const juz = quranMetaData.getJuzByPageNumber(currentPage);
 
   useEffect(() => {
@@ -108,15 +113,15 @@ export default function QuranPagesScreen() {
             سورة {surahNameArabic}
           </Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {surahNameEnglish}
+            {surahNameTransliterated}
           </Text>
           <View style={styles.headerInfo}>
             <Text style={[styles.headerInfoText, { color: colors.textSecondary }]}>
-              Juz {juz?.id || 1}
+              {t('quranPage.juz')} {juz?.id || 1}
             </Text>
             <View style={[styles.headerDot, { backgroundColor: colors.textSecondary }]} />
             <Text style={[styles.headerInfoText, { color: colors.textSecondary }]}>
-              Page {currentPage}
+              {t('quranPage.page')} {currentPage}
             </Text>
           </View>
         </View>

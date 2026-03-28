@@ -30,8 +30,37 @@ const removeArticle = (name: string): string => {
   return name.replace(/^(aal|ali|al|an|ar|as|at|ad|az|ash)/, '');
 };
 
+// Helper to check if string contains Arabic characters
+const containsArabic = (str: string): boolean => {
+  return /[\u0600-\u06FF]/.test(str);
+};
+
+// Helper to extract Arabic part from mixed string like "Et-Tevbe - التوبة"
+const extractArabicName = (name: string): string | null => {
+  // If the string contains " - " separator and has Arabic, extract just the Arabic part
+  if (name.includes(' - ') && containsArabic(name)) {
+    const parts = name.split(' - ');
+    for (const part of parts) {
+      if (containsArabic(part)) {
+        return part.trim();
+      }
+    }
+  }
+  // If the whole string is Arabic, return it
+  if (containsArabic(name) && !name.match(/[a-zA-Z]/)) {
+    return name;
+  }
+  return null;
+};
+
 // Helper to get Arabic surah name from English name using chapters.json
 const getArabicSurahName = (englishName: string): string => {
+  // First, check if the input already contains Arabic (mixed format like "Et-Tevbe - التوبة")
+  const arabicPart = extractArabicName(englishName);
+  if (arabicPart) {
+    return arabicPart;
+  }
+
   const normalizedInput = normalizeName(englishName);
   const inputWithoutArticle = removeArticle(normalizedInput);
 

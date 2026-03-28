@@ -5,8 +5,14 @@
     "settings": "Settings"
   },
   "home": {
+    "title": "Quran",
+    "subtitle": "114 Surahs",
     "searchSurah": "Search surah...",
+    "noSurahsFound": "No surahs found",
     "verses": "verses",
+    "ayahs": "ayahs",
+    "meccan": "Meccan",
+    "medinan": "Medinan",
     "page": "Page",
     "pages": "Pages"
   },
@@ -38,10 +44,13 @@
     "dark": "Dark"
   },
   "reading": {
+    "arabic": "Arabic",
     "translation": "Translation",
     "tapToMark": "Tap a word to mark a mistake",
     "ayah": "Ayah",
-    "of": "of"
+    "of": "of",
+    "mistakesCount": "Mistakes",
+    "addNote": "Add a note..."
   },
   "modal": {
     "selectPage": "Select Page",
@@ -63,5 +72,19 @@
     "loading": "Loading...",
     "error": "Error",
     "retry": "Retry"
+  },
+  "mistakeModal": {
+    "markMistake": "Mark Mistake",
+    "editMistake": "Edit Mistake",
+    "ayah": "Ayah",
+    "word": "Word",
+    "noteOptional": "Note (optional)",
+    "notePlaceholder": "Add a note about this mistake...",
+    "cancel": "Cancel",
+    "saveMistake": "Save Mistake",
+    "saveChanges": "Save Changes",
+    "deleteMistake": "Delete Mistake",
+    "deleteConfirm": "Are you sure you want to delete this mistake?",
+    "delete": "Delete"
   }
 }

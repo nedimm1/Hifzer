@@ -5,8 +5,14 @@
     "settings": "Postavke"
   },
   "home": {
+    "title": "Kur'an",
+    "subtitle": "114 Sura",
     "searchSurah": "Pretraži suru...",
+    "noSurahsFound": "Sura nije pronađena",
     "verses": "ajeta",
+    "ayahs": "ajeta",
+    "meccan": "Mekanska",
+    "medinan": "Medinska",
     "page": "Stranica",
     "pages": "Stranice"
   },
@@ -38,10 +44,13 @@
     "dark": "Tamna"
   },
   "reading": {
+    "arabic": "Arapski",
     "translation": "Prijevod",
     "tapToMark": "Dodirni riječ da označiš grešku",
     "ayah": "Ajet",
-    "of": "od"
+    "of": "od",
+    "mistakesCount": "Greške",
+    "addNote": "Dodaj bilješku..."
   },
   "modal": {
     "selectPage": "Odaberi stranicu",
@@ -63,5 +72,19 @@
     "loading": "Učitavanje...",
     "error": "Greška",
     "retry": "Pokušaj ponovo"
+  },
+  "mistakeModal": {
+    "markMistake": "Označi grešku",
+    "editMistake": "Uredi grešku",
+    "ayah": "Ajet",
+    "word": "Riječ",
+    "noteOptional": "Bilješka (opcionalno)",
+    "notePlaceholder": "Dodaj bilješku o ovoj grešci...",
+    "cancel": "Odustani",
+    "saveMistake": "Spremi grešku",
+    "saveChanges": "Spremi promjene",
+    "deleteMistake": "Obriši grešku",
+    "deleteConfirm": "Jeste li sigurni da želite obrisati ovu grešku?",
+    "delete": "Obriši"
   }
 }

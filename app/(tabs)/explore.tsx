@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import DropDownPicker from 'react-native-dropdown-picker';
 
 import { spacing } from '../../constants/spacing';
 import { RootState } from '../../store';
@@ -31,20 +30,12 @@ import { changeLanguage } from '../../i18n';
 
 const themeOrder: ThemeName[] = ['default', 'mecca', 'medina', 'palestine', 'alAqsa'];
 
-const appLanguageItems = [
-  { label: '🇬🇧  English', value: 'en' },
-  { label: '🇧🇦  Bosanski', value: 'bs' },
-  { label: '🇹🇷  Türkçe', value: 'tr' },
-  { label: '🇩🇪  Deutsch', value: 'de' },
-  { label: '🇦🇱  Shqip', value: 'sq' },
-];
-
-const translationLanguageItems = [
-  { label: '🇬🇧  English', value: 'en' },
-  { label: '🇧🇦  Bosanski', value: 'bs' },
-  { label: '🇹🇷  Türkçe', value: 'tr' },
-  { label: '🇩🇪  Deutsch', value: 'de' },
-  { label: '🇦🇱  Shqip', value: 'sq' },
+const languageOptions = [
+  { flag: '🇬🇧', label: 'English', value: 'en' },
+  { flag: '🇧🇦', label: 'Bosanski', value: 'bs' },
+  { flag: '🇹🇷', label: 'Türkçe', value: 'tr' },
+  { flag: '🇩🇪', label: 'Deutsch', value: 'de' },
+  { flag: '🇦🇱', label: 'Shqip', value: 'sq' },
 ];
 
 export default function SettingsScreen() {
@@ -54,28 +45,17 @@ export default function SettingsScreen() {
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
-  const [appLangOpen, setAppLangOpen] = useState(false);
-  const [transLangOpen, setTransLangOpen] = useState(false);
-  const [appLangValue, setAppLangValue] = useState<string>(appLanguage);
-  const [transLangValue, setTransLangValue] = useState<string>(translationLanguage);
-
-  const handleAppLanguageChange = (value: string | null) => {
-    if (value) {
-      changeLanguage(value as AppLanguage);
-      dispatch(setAppLanguage(value as AppLanguage));
-      setAppLangValue(value);
-    }
+  const handleAppLanguageChange = (value: string) => {
+    changeLanguage(value as AppLanguage);
+    dispatch(setAppLanguage(value as AppLanguage));
   };
 
   const handleThemeChange = (theme: ThemeName) => {
     dispatch(setTheme(theme));
   };
 
-  const handleTranslationLanguageChange = (value: string | null) => {
-    if (value) {
-      dispatch(setTranslationLanguage(value as TranslationLanguage));
-      setTransLangValue(value);
-    }
+  const handleTranslationLanguageChange = (value: string) => {
+    dispatch(setTranslationLanguage(value as TranslationLanguage));
   };
 
   return (
@@ -192,16 +172,14 @@ export default function SettingsScreen() {
         </View>
 
         {/* Language Section */}
-        <View style={[styles.section, { zIndex: 2000 }]}>
+        <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
             {t('settings.language')}
           </Text>
 
           {/* App Language */}
-          <View
-            style={[styles.settingCard, { backgroundColor: colors.bgSecondary, zIndex: 2000 }]}
-          >
-            <View style={styles.dropdownHeader}>
+          <View style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}>
+            <View style={styles.languageHeader}>
               <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
                 <Ionicons name="language" size={18} color="#FFFFFF" />
               </View>
@@ -209,53 +187,48 @@ export default function SettingsScreen() {
                 {t('settings.appLanguage')}
               </Text>
             </View>
-            <DropDownPicker
-              open={appLangOpen}
-              value={appLangValue}
-              items={appLanguageItems}
-              setOpen={setAppLangOpen}
-              setValue={setAppLangValue}
-              onSelectItem={(item) => handleAppLanguageChange(item.value as string)}
-              style={{
-                backgroundColor: colors.bgPrimary,
-                borderColor: colors.border,
-                borderRadius: 12,
-                minHeight: 50,
-              }}
-              textStyle={{
-                color: colors.textPrimary,
-                fontSize: 16,
-              }}
-              dropDownContainerStyle={{
-                backgroundColor: colors.bgPrimary,
-                borderColor: colors.border,
-                borderRadius: 12,
-              }}
-              listItemLabelStyle={{
-                color: colors.textPrimary,
-              }}
-              selectedItemContainerStyle={{
-                backgroundColor: colors.accent + '20',
-              }}
-              ArrowDownIconComponent={() => (
-                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-              )}
-              ArrowUpIconComponent={() => (
-                <Ionicons name="chevron-up" size={20} color={colors.accent} />
-              )}
-              TickIconComponent={() => (
-                <Ionicons name="checkmark" size={18} color={colors.accent} />
-              )}
-              zIndex={2000}
-              zIndexInverse={1000}
-            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.languageScroll}
+            >
+              {languageOptions.map((lang) => {
+                const isSelected = appLanguage === lang.value;
+                return (
+                  <TouchableOpacity
+                    key={lang.value}
+                    style={[
+                      styles.languageCard,
+                      {
+                        backgroundColor: isSelected ? colors.accent + '20' : colors.bgPrimary,
+                        borderColor: isSelected ? colors.accent : colors.border,
+                        borderWidth: isSelected ? 2 : 1,
+                      },
+                    ]}
+                    onPress={() => handleAppLanguageChange(lang.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.languageFlag}>{lang.flag}</Text>
+                    <Text style={[styles.languageName, { color: colors.textPrimary }]}>
+                      {lang.label}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color={colors.accent}
+                        style={styles.languageCheck}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
 
           {/* Translation Language */}
-          <View
-            style={[styles.settingCard, { backgroundColor: colors.bgSecondary, zIndex: 1000 }]}
-          >
-            <View style={styles.dropdownHeader}>
+          <View style={[styles.settingCard, { backgroundColor: colors.bgSecondary }]}>
+            <View style={styles.languageHeader}>
               <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
                 <Ionicons name="book" size={18} color="#FFFFFF" />
               </View>
@@ -263,46 +236,43 @@ export default function SettingsScreen() {
                 {t('settings.quranTranslation')}
               </Text>
             </View>
-            <DropDownPicker
-              open={transLangOpen}
-              value={transLangValue}
-              items={translationLanguageItems}
-              setOpen={setTransLangOpen}
-              setValue={setTransLangValue}
-              onSelectItem={(item) => handleTranslationLanguageChange(item.value as string)}
-              style={{
-                backgroundColor: colors.bgPrimary,
-                borderColor: colors.border,
-                borderRadius: 12,
-                minHeight: 50,
-              }}
-              textStyle={{
-                color: colors.textPrimary,
-                fontSize: 16,
-              }}
-              dropDownContainerStyle={{
-                backgroundColor: colors.bgPrimary,
-                borderColor: colors.border,
-                borderRadius: 12,
-              }}
-              listItemLabelStyle={{
-                color: colors.textPrimary,
-              }}
-              selectedItemContainerStyle={{
-                backgroundColor: colors.accent + '20',
-              }}
-              ArrowDownIconComponent={() => (
-                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-              )}
-              ArrowUpIconComponent={() => (
-                <Ionicons name="chevron-up" size={20} color={colors.accent} />
-              )}
-              TickIconComponent={() => (
-                <Ionicons name="checkmark" size={18} color={colors.accent} />
-              )}
-              zIndex={1000}
-              zIndexInverse={2000}
-            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.languageScroll}
+            >
+              {languageOptions.map((lang) => {
+                const isSelected = translationLanguage === lang.value;
+                return (
+                  <TouchableOpacity
+                    key={lang.value}
+                    style={[
+                      styles.languageCard,
+                      {
+                        backgroundColor: isSelected ? colors.accent + '20' : colors.bgPrimary,
+                        borderColor: isSelected ? colors.accent : colors.border,
+                        borderWidth: isSelected ? 2 : 1,
+                      },
+                    ]}
+                    onPress={() => handleTranslationLanguageChange(lang.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.languageFlag}>{lang.flag}</Text>
+                    <Text style={[styles.languageName, { color: colors.textPrimary }]}>
+                      {lang.label}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color={colors.accent}
+                        style={styles.languageCheck}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         </View>
 
@@ -372,10 +342,35 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: spacing.md,
   },
-  dropdownHeader: {
+  languageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
+  },
+  languageScroll: {
+    gap: spacing.sm,
+    paddingRight: spacing.md,
+  },
+  languageCard: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 80,
+  },
+  languageFlag: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  languageName: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  languageCheck: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
   },
   themeScroll: {
     gap: spacing.sm,

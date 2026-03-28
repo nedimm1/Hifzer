@@ -5,8 +5,14 @@
     "settings": "Cilësimet"
   },
   "home": {
+    "title": "Kurani",
+    "subtitle": "114 Sure",
     "searchSurah": "Kërko sure...",
+    "noSurahsFound": "Nuk u gjet asnjë sure",
     "verses": "ajete",
+    "ayahs": "ajete",
+    "meccan": "Mekase",
+    "medinan": "Medinase",
     "page": "Faqe",
     "pages": "Faqet"
   },
@@ -38,10 +44,13 @@
     "dark": "E errët"
   },
   "reading": {
+    "arabic": "Arabisht",
     "translation": "Përkthimi",
     "tapToMark": "Prek një fjalë për të shënuar gabim",
     "ayah": "Ajet",
-    "of": "nga"
+    "of": "nga",
+    "mistakesCount": "Gabimet",
+    "addNote": "Shto shënim..."
   },
   "modal": {
     "selectPage": "Zgjidh faqen",
@@ -63,5 +72,19 @@
     "loading": "Duke u ngarkuar...",
     "error": "Gabim",
     "retry": "Provo përsëri"
+  },
+  "mistakeModal": {
+    "markMistake": "Shëno gabimin",
+    "editMistake": "Ndrysho gabimin",
+    "ayah": "Ajet",
+    "word": "Fjala",
+    "noteOptional": "Shënim (opsionale)",
+    "notePlaceholder": "Shto një shënim për këtë gabim...",
+    "cancel": "Anulo",
+    "saveMistake": "Ruaj gabimin",
+    "saveChanges": "Ruaj ndryshimet",
+    "deleteMistake": "Fshi gabimin",
+    "deleteConfirm": "A jeni i sigurt që doni të fshini këtë gabim?",
+    "delete": "Fshi"
   }
 }

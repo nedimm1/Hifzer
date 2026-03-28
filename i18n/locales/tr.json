@@ -5,8 +5,14 @@
     "settings": "Ayarlar"
   },
   "home": {
+    "title": "Kur'an",
+    "subtitle": "114 Sure",
     "searchSurah": "Sure ara...",
+    "noSurahsFound": "Sure bulunamadı",
     "verses": "ayet",
+    "ayahs": "ayet",
+    "meccan": "Mekki",
+    "medinan": "Medeni",
     "page": "Sayfa",
     "pages": "Sayfalar"
   },
@@ -38,10 +44,13 @@
     "dark": "Koyu"
   },
   "reading": {
+    "arabic": "Arapça",
     "translation": "Çeviri",
     "tapToMark": "Hata işaretlemek için kelimeye dokunun",
     "ayah": "Ayet",
-    "of": "/"
+    "of": "/",
+    "mistakesCount": "Hatalar",
+    "addNote": "Not ekle..."
   },
   "modal": {
     "selectPage": "Sayfa Seç",
@@ -63,5 +72,19 @@
     "loading": "Yükleniyor...",
     "error": "Hata",
     "retry": "Tekrar Dene"
+  },
+  "mistakeModal": {
+    "markMistake": "Hata İşaretle",
+    "editMistake": "Hatayı Düzenle",
+    "ayah": "Ayet",
+    "word": "Kelime",
+    "noteOptional": "Not (isteğe bağlı)",
+    "notePlaceholder": "Bu hata hakkında not ekleyin...",
+    "cancel": "İptal",
+    "saveMistake": "Hatayı Kaydet",
+    "saveChanges": "Değişiklikleri Kaydet",
+    "deleteMistake": "Hatayı Sil",
+    "deleteConfirm": "Bu hatayı silmek istediğinizden emin misiniz?",
+    "delete": "Sil"
   }
 }

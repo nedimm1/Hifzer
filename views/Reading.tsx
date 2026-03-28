@@ -16,6 +16,7 @@ import {
 import { moderateScale } from 'react-native-size-matters';
 import { useMutation } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 import { spacing } from '../constants/spacing';
 import chapters from '../data/chapters.json';
@@ -39,6 +40,7 @@ interface ReadingProps {
 const { width } = Dimensions.get('window');
 
 const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
+  const { t } = useTranslation();
   const { colors, translationLanguage } = useSelector(
     (state: RootState) => state.config
   );
@@ -141,8 +143,8 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
         setArabicText(fetchedArabicText);
         setTranslation(ayahTranslation);
 
-        const { numberOfAyas } = quranMetaData.getSuraByIndex(surah);
-        setSuraEndAyahNumber(numberOfAyas);
+        const suraData = quranMetaData.getSuraByIndex(surah);
+        setSuraEndAyahNumber(suraData.numberOfAyas);
 
         const chapter = (chapters as any[]).find((c) => c.index.includes(surah));
         const selectedSurahName = chapter?.titleAr ? `سورة  ${chapter.titleAr}` : '';
@@ -203,7 +205,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
     <View style={[styles.contentCard, { backgroundColor: colors.bgSecondary, width: width - 40 }]}>
       {ayahMistakes.length === 0 && (
         <Text style={[styles.tapHint, { color: colors.textSecondary }]}>
-          Tap a word to mark a mistake
+          {t('reading.tapToMark')}
         </Text>
       )}
       <View style={styles.wordsContainer}>
@@ -245,7 +247,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
           letterSpacing: 0.5,
         }}
       >
-        Translation
+        {t('reading.translation')}
       </Text>
       <Text
         style={{
@@ -298,7 +300,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
             marginTop: 4,
           }}
         >
-          Ayah {ayahReference.ayah} of {suraEndAyahNumber}
+          {t('reading.ayah')} {ayahReference.ayah} {t('reading.of')} {suraEndAyahNumber}
         </Text>
       </View>
 
@@ -317,7 +319,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
               { color: activeTab === 0 ? '#FFFFFF' : colors.textSecondary },
             ]}
           >
-            Arabic
+            {t('reading.arabic')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -333,7 +335,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
               { color: activeTab === 1 ? '#FFFFFF' : colors.textSecondary },
             ]}
           >
-            Translation
+            {t('reading.translation')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -371,7 +373,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
         {ayahMistakes.length > 0 && (
           <View style={styles.mistakesSection}>
             <Text style={[styles.mistakesSectionTitle, { color: colors.textSecondary }]}>
-              Mistakes ({ayahMistakes.length})
+              {t('reading.mistakesCount')} ({ayahMistakes.length})
             </Text>
             {ayahMistakes.map((mistake) => (
               <TouchableOpacity
@@ -390,7 +392,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
                     </Text>
                   ) : (
                     <Text style={[styles.mistakeNoNote, { color: colors.textSecondary }]}>
-                      Add a note...
+                      {t('reading.addNote')}
                     </Text>
                   )}
                 </View>

@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 
 import { spacing } from '../constants/spacing';
 import { RootState } from '../store';
+import { getSurahTransliteration } from '../utils/surahName';
 
 interface Sura {
   index: number;
@@ -37,10 +38,7 @@ const SuraButton: React.FC<SuraButtonProps> = ({
   const { colors } = useSelector((state: RootState) => state.config);
   const { t, i18n } = useTranslation();
 
-  const suraName =
-    i18n.language === 'bs'
-      ? sura.name.bosnianTranscription
-      : sura.name.englishTranscription;
+  const suraName = getSurahTransliteration(sura.name);
 
   return (
     <TouchableOpacity
@@ -50,7 +48,7 @@ const SuraButton: React.FC<SuraButtonProps> = ({
       activeOpacity={0.7}
       accessibilityLabel={`${sura.index}. ${suraName}`}
       accessibilityRole="button"
-      accessibilityHint={t('choose_page')}
+      accessibilityHint={t('modal.choosePage')}
     >
       {/* Number Badge */}
       <View style={[styles.numberBadge, { backgroundColor: colors.accent }]}>
@@ -68,11 +66,11 @@ const SuraButton: React.FC<SuraButtonProps> = ({
           </Text>
           <View style={styles.metaRow}>
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-              {sura.numberOfAyas} {t('ayahs')}
+              {sura.numberOfAyas} {t('home.ayahs')}
             </Text>
             <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-              {sura.type === 'Meccan' ? t('meccan') : t('medinan')}
+              {sura.type === 'Meccan' ? t('home.meccan') : t('home.medinan')}
             </Text>
           </View>
         </View>
