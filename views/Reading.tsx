@@ -157,7 +157,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
 
   useEffect(() => {
     fetchAyah();
-  }, [ayahReference.surah, ayahReference.ayah]);
+  }, [fetchAyah]);
 
   const getNextAyah = () => {
     setAyahReference((prev) => ({ ...prev, ayah: prev.ayah + 1 }));
