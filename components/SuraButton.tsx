@@ -22,6 +22,8 @@ interface Sura {
   endPage: number;
   totalPages: number;
   type: string;
+  startJuz?: number;
+  endJuz?: number;
 }
 
 interface SuraButtonProps {

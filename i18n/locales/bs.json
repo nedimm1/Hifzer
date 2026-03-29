@@ -7,6 +7,9 @@
   "home": {
     "title": "Kur'an",
     "subtitle": "114 Sura",
+    "juzSubtitle": "30 Džuzeva",
+    "juz": "Džuz",
+    "readJuz": "Čitaj džuz",
     "searchSurah": "Pretraži suru...",
     "noSurahsFound": "Sura nije pronađena",
     "verses": "ajeta",

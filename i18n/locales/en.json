@@ -7,6 +7,9 @@
   "home": {
     "title": "Quran",
     "subtitle": "114 Surahs",
+    "juzSubtitle": "30 Juz",
+    "juz": "Juz",
+    "readJuz": "Read Juz",
     "searchSurah": "Search surah...",
     "noSurahsFound": "No surahs found",
     "verses": "verses",

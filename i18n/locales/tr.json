@@ -7,6 +7,9 @@
   "home": {
     "title": "Kur'an",
     "subtitle": "114 Sure",
+    "juzSubtitle": "30 Cüz",
+    "juz": "Cüz",
+    "readJuz": "Cüz'ü oku",
     "searchSurah": "Sure ara...",
     "noSurahsFound": "Sure bulunamadı",
     "verses": "ayet",

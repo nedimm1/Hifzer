@@ -7,6 +7,9 @@
   "home": {
     "title": "Koran",
     "subtitle": "114 Suren",
+    "juzSubtitle": "30 Juz",
+    "juz": "Juz",
+    "readJuz": "Juz lesen",
     "searchSurah": "Sure suchen...",
     "noSurahsFound": "Keine Sure gefunden",
     "verses": "Verse",
