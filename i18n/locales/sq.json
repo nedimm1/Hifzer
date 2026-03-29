@@ -50,7 +50,13 @@
     "ayah": "Ajet",
     "of": "nga",
     "mistakesCount": "Gabimet",
-    "addNote": "Shto shënim..."
+    "addNote": "Shto shënim...",
+    "reciter": "Lexuesi",
+    "listenToRecitation": "Dëgjo recitimin",
+    "play": "Luaj",
+    "pause": "Pauzë",
+    "audioComingSoon": "Së shpejti",
+    "audioComingSoonMessage": "Riprodhimi i audios do të jetë i disponueshëm në një përditësim të ardhshëm."
   },
   "modal": {
     "selectPage": "Zgjidh faqen",
@@ -66,7 +72,8 @@
   "quranPage": {
     "juz": "Xhuzi",
     "page": "Faqe",
-    "surah": "Sure"
+    "surah": "Sure",
+    "loadingTranslation": "Duke ngarkuar përkthimin..."
   },
   "common": {
     "loading": "Duke u ngarkuar...",

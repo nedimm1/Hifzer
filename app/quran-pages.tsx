@@ -2,13 +2,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, BackHandler, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { loadAsync } from 'expo-font';
 import quranMetaData from '@kmaslesa/quran-metadata';
 
 import { RootState } from '../store';
+import { toggleReadingMode } from '../store/configSlice';
 import QuranPages from '../views/QuranPages';
 import { quranFonts } from '../data/quranFonts';
 import { getSurahTransliteration } from '../utils/surahName';
@@ -16,8 +17,9 @@ import { getSurahTransliteration } from '../utils/surahName';
 export default function QuranPagesScreen() {
   const { page } = useLocalSearchParams<{ page: string }>();
   const router = useRouter();
+  const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
-  const { colors } = useSelector((state: RootState) => state.config);
+  const { colors, readingMode } = useSelector((state: RootState) => state.config);
   const insets = useSafeAreaInsets();
   const [selectedAyah, setSelectedAyah] = useState<string | null>(null);
   const [headerVisible, setHeaderVisible] = useState(false);
@@ -126,7 +128,16 @@ export default function QuranPagesScreen() {
           </View>
         </View>
 
-        <View style={styles.headerBackButton} />
+        <TouchableOpacity
+          onPress={() => dispatch(toggleReadingMode())}
+          style={styles.headerBackButton}
+        >
+          <Ionicons
+            name={readingMode === 'arabic' ? 'globe-outline' : 'book-outline'}
+            size={24}
+            color={colors.textPrimary}
+          />
+        </TouchableOpacity>
       </Animated.View>
 
       <QuranPages
@@ -135,6 +146,7 @@ export default function QuranPagesScreen() {
         setSelectedAyah={setSelectedAyah}
         onTap={toggleHeader}
         onPageChange={handlePageChange}
+        readingMode={readingMode}
       />
     </View>
   );

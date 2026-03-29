@@ -50,7 +50,13 @@
     "ayah": "Ayet",
     "of": "/",
     "mistakesCount": "Hatalar",
-    "addNote": "Not ekle..."
+    "addNote": "Not ekle...",
+    "reciter": "Okuyucu",
+    "listenToRecitation": "Tilaveti Dinle",
+    "play": "Oynat",
+    "pause": "Duraklat",
+    "audioComingSoon": "Yakında",
+    "audioComingSoonMessage": "Ses çalma özelliği gelecek bir güncellemede kullanılabilir olacak."
   },
   "modal": {
     "selectPage": "Sayfa Seç",
@@ -66,7 +72,8 @@
   "quranPage": {
     "juz": "Cüz",
     "page": "Sayfa",
-    "surah": "Sure"
+    "surah": "Sure",
+    "loadingTranslation": "Çeviri yükleniyor..."
   },
   "common": {
     "loading": "Yükleniyor...",

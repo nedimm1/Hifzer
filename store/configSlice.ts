@@ -190,6 +190,7 @@ export const themeDisplayNames: Record<ThemeName, string> = {
 
 export type TranslationLanguage = 'en' | 'bs' | 'tr' | 'de' | 'sq';
 export type AppLanguage = 'en' | 'bs' | 'tr' | 'de' | 'sq';
+export type ReadingMode = 'arabic' | 'translation';
 
 interface ConfigState {
   colors: Colors;
@@ -197,6 +198,7 @@ interface ConfigState {
   themeName: ThemeName;
   translationLanguage: TranslationLanguage;
   appLanguage: AppLanguage;
+  readingMode: ReadingMode;
   isInitialized: boolean;
 }
 
@@ -206,6 +208,7 @@ const initialState: ConfigState = {
   themeName: 'default',
   translationLanguage: 'bs',
   appLanguage: 'en',
+  readingMode: 'arabic',
   isInitialized: false,
 };
 
@@ -252,9 +255,15 @@ const configSlice = createSlice({
       state.appLanguage = action.payload;
       AsyncStorage.setItem('appLanguage', action.payload);
     },
+    setReadingMode: (state, action: PayloadAction<ReadingMode>) => {
+      state.readingMode = action.payload;
+    },
+    toggleReadingMode: (state) => {
+      state.readingMode = state.readingMode === 'arabic' ? 'translation' : 'arabic';
+    },
   },
 });
 
-export const { setTheme, toggleDarkMode, setDarkMode, initializeConfig, setTranslationLanguage, setAppLanguage } = configSlice.actions;
+export const { setTheme, toggleDarkMode, setDarkMode, initializeConfig, setTranslationLanguage, setAppLanguage, setReadingMode, toggleReadingMode } = configSlice.actions;
 export { themes };
 export default configSlice.reducer;

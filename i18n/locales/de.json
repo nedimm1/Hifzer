@@ -50,7 +50,13 @@
     "ayah": "Vers",
     "of": "von",
     "mistakesCount": "Fehler",
-    "addNote": "Notiz hinzufügen..."
+    "addNote": "Notiz hinzufügen...",
+    "reciter": "Rezitator",
+    "listenToRecitation": "Rezitation anhören",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "audioComingSoon": "Demnächst",
+    "audioComingSoonMessage": "Die Audiowiedergabe wird in einem zukünftigen Update verfügbar sein."
   },
   "modal": {
     "selectPage": "Seite auswählen",
@@ -66,7 +72,8 @@
   "quranPage": {
     "juz": "Juz",
     "page": "Seite",
-    "surah": "Sure"
+    "surah": "Sure",
+    "loadingTranslation": "Übersetzung wird geladen..."
   },
   "common": {
     "loading": "Laden...",

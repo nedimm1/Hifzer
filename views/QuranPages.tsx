@@ -15,7 +15,9 @@ import { useTranslation } from 'react-i18next';
 import quranMetaData from '@kmaslesa/quran-metadata';
 
 import QuranPage from './QuranPage';
+import TranslationPage from './TranslationPage';
 import { RootState } from '../store';
+import { ReadingMode } from '../store/configSlice';
 import { selectMistakes } from '../store/mistakesSlice';
 import { spacing } from '../constants/spacing';
 import { getSurahTransliteration } from '../utils/surahName';
@@ -32,6 +34,7 @@ interface QuranPagesProps {
   setSelectedAyah: (ayah: string | null) => void;
   onTap?: () => void;
   onPageChange?: (page: number) => void;
+  readingMode: ReadingMode;
 }
 
 // Helper to get surah name from ayah key
@@ -42,7 +45,7 @@ const getSurahName = (ayahKey: string): string => {
   return getSurahTransliteration(sura.name);
 };
 
-const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap, onPageChange }) => {
+const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelectedAyah, onTap, onPageChange, readingMode }) => {
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useSelector((state: RootState) => state.config);
@@ -50,8 +53,25 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
   const [tooltipY, setTooltipY] = useState<number>(0);
   const [pointerBelow, setPointerBelow] = useState<boolean>(true);
   const { height } = Dimensions.get('window');
+  const [currentPage, setCurrentPage] = useState(route.params.page || 1);
 
   const initialScrollIndex = route.params.page ? route.params.page - 1 : 0;
+
+  const goToNextPage = useCallback(() => {
+    if (currentPage > 1) {
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      onPageChange?.(newPage);
+    }
+  }, [currentPage, onPageChange]);
+
+  const goToPrevPage = useCallback(() => {
+    if (currentPage < 604) {
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      onPageChange?.(newPage);
+    }
+  }, [currentPage, onPageChange]);
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: Array<{ item: number }> }) => {
@@ -95,16 +115,23 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
   const QuranPageRenderItem = useCallback(
     ({ item }: { item: number }) => (
       <TouchableOpacity activeOpacity={1} onPress={onTap}>
-        <QuranPage
-          page={item}
-          selectedAyah={selectedAyah}
-          setSelectedAyah={setSelectedAyah}
-          onWordSelect={handleWordSelect}
-          onTap={onTap}
-        />
+        {readingMode === 'arabic' ? (
+          <QuranPage
+            page={item}
+            selectedAyah={selectedAyah}
+            setSelectedAyah={setSelectedAyah}
+            onWordSelect={handleWordSelect}
+            onTap={onTap}
+          />
+        ) : (
+          <TranslationPage
+            page={item}
+            onTap={onTap}
+          />
+        )}
       </TouchableOpacity>
     ),
-    [selectedAyah, onTap, handleWordSelect]
+    [selectedAyah, onTap, handleWordSelect, readingMode]
   );
 
   const goToReadingPage = () => {
@@ -118,6 +145,51 @@ const QuranPages: React.FC<QuranPagesProps> = ({ route, selectedAyah, setSelecte
   const surahName = selectedAyah ? getSurahName(selectedAyah) : '';
 
   const pages = Array.from({ length: 604 }, (_, index) => index + 1);
+
+  // For translation mode, render directly without FlatList
+  if (readingMode === 'translation') {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+        <View style={styles.translationContent}>
+          <TranslationPage
+            page={currentPage}
+            onTap={onTap}
+          />
+        </View>
+
+        {/* Footer with navigation */}
+        <View style={[styles.translationFooter, { backgroundColor: colors.bgPrimary, borderTopColor: colors.border }]}>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={goToPrevPage}
+            disabled={currentPage >= 604}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={currentPage >= 604 ? colors.textSecondary : colors.accent}
+            />
+          </TouchableOpacity>
+
+          <Text style={[styles.pageNumberText, { color: colors.textPrimary }]}>
+            {currentPage}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={goToNextPage}
+            disabled={currentPage <= 1}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={currentPage <= 1 ? colors.textSecondary : colors.accent}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
@@ -272,6 +344,28 @@ const styles = StyleSheet.create({
   pointerDown: {
     borderTopWidth: 10,
     marginTop: -1,
+  },
+  translationContent: {
+    flex: 1,
+  },
+  translationFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 25,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  navButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageNumberText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

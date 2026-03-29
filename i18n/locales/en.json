@@ -50,7 +50,13 @@
     "ayah": "Ayah",
     "of": "of",
     "mistakesCount": "Mistakes",
-    "addNote": "Add a note..."
+    "addNote": "Add a note...",
+    "reciter": "Reciter",
+    "listenToRecitation": "Listen to Recitation",
+    "play": "Play",
+    "pause": "Pause",
+    "audioComingSoon": "Coming Soon",
+    "audioComingSoonMessage": "Audio playback will be available in a future update."
   },
   "modal": {
     "selectPage": "Select Page",
@@ -66,7 +72,8 @@
   "quranPage": {
     "juz": "Juz",
     "page": "Page",
-    "surah": "Surah"
+    "surah": "Surah",
+    "loadingTranslation": "Loading translation..."
   },
   "common": {
     "loading": "Loading...",

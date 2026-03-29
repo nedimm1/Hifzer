@@ -157,7 +157,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
 
   useEffect(() => {
     fetchAyah();
-  }, [fetchAyah]);
+  }, [ayahReference.surah, ayahReference.ayah]);
 
   const getNextAyah = () => {
     setAyahReference((prev) => ({ ...prev, ayah: prev.ayah + 1 }));
@@ -211,6 +211,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
       <View style={styles.wordsContainer}>
         {arabicWords.map((word, index) => {
           const hasMistake = mistakeWordIndices.includes(index);
+
           return (
             <TouchableOpacity
               key={`word-${index}`}
@@ -280,7 +281,7 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
         style={{
           paddingTop: moderateScale(60, 0.2),
           paddingHorizontal: moderateScale(20, 0.2),
-          paddingBottom: moderateScale(16, 0.2),
+          paddingBottom: moderateScale(8, 0.2),
         }}
       >
         <Text
@@ -407,73 +408,77 @@ const Reading: React.FC<ReadingProps> = ({ selectedAyah }) => {
       <View
         style={{
           backgroundColor: colors.bgPrimary,
-          paddingHorizontal: moderateScale(24, 0.2),
-          paddingTop: moderateScale(16, 0.2),
-          paddingBottom: moderateScale(40, 0.2),
+          paddingHorizontal: moderateScale(16, 0.2),
+          paddingTop: moderateScale(12, 0.2),
+          paddingBottom: moderateScale(48, 0.2),
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
         }}
       >
-        {/* Previous Button */}
-        <TouchableOpacity
-          activeOpacity={ayahReference.ayah <= 1 ? 0.4 : 0.7}
-          onPress={getPreviousAyah}
-          disabled={ayahReference.ayah <= 1}
-          style={{
-            padding: moderateScale(8, 0.2),
-          }}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={moderateScale(28, 0.2)}
-            color={
-              ayahReference.ayah > 1 ? colors.accent : colors.textSecondary
-            }
-          />
-        </TouchableOpacity>
-
-        {/* Ayah indicator */}
         <View
           style={{
-            backgroundColor: colors.accent,
-            paddingVertical: moderateScale(8, 0.2),
+            backgroundColor: colors.bgSecondary,
+            borderRadius: moderateScale(16, 0.2),
             paddingHorizontal: moderateScale(16, 0.2),
-            borderRadius: moderateScale(20, 0.2),
+            paddingVertical: moderateScale(12, 0.2),
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
+          {/* Previous Button */}
+          <TouchableOpacity
+            activeOpacity={ayahReference.ayah <= 1 ? 0.4 : 0.7}
+            onPress={getPreviousAyah}
+            disabled={ayahReference.ayah <= 1}
+            style={{
+              padding: moderateScale(10, 0.2),
+              borderRadius: moderateScale(10, 0.2),
+              backgroundColor:
+                ayahReference.ayah > 1 ? `${colors.accent}15` : `${colors.textSecondary}10`,
+            }}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={moderateScale(24, 0.2)}
+              color={ayahReference.ayah > 1 ? colors.accent : colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          {/* Ayah Counter */}
           <Text
             style={{
-              color: '#FFFFFF',
-              fontSize: moderateScale(14, 0.2),
-              fontWeight: '700',
+              color: colors.textPrimary,
+              fontSize: moderateScale(16, 0.2),
+              fontWeight: '600',
             }}
           >
             {ayahReference.ayah} / {suraEndAyahNumber}
           </Text>
-        </View>
 
-        {/* Next Button */}
-        <TouchableOpacity
-          activeOpacity={ayahReference.ayah >= suraEndAyahNumber ? 0.4 : 0.7}
-          onPress={getNextAyah}
-          disabled={ayahReference.ayah >= suraEndAyahNumber}
-          style={{
-            padding: moderateScale(8, 0.2),
-          }}
-        >
-          <Ionicons
-            name="chevron-forward"
-            size={moderateScale(28, 0.2)}
-            color={
-              ayahReference.ayah < suraEndAyahNumber
-                ? colors.accent
-                : colors.textSecondary
-            }
-          />
-        </TouchableOpacity>
+          {/* Next Button */}
+          <TouchableOpacity
+            activeOpacity={ayahReference.ayah >= suraEndAyahNumber ? 0.4 : 0.7}
+            onPress={getNextAyah}
+            disabled={ayahReference.ayah >= suraEndAyahNumber}
+            style={{
+              padding: moderateScale(10, 0.2),
+              borderRadius: moderateScale(10, 0.2),
+              backgroundColor:
+                ayahReference.ayah < suraEndAyahNumber
+                  ? `${colors.accent}15`
+                  : `${colors.textSecondary}10`,
+            }}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={moderateScale(24, 0.2)}
+              color={
+                ayahReference.ayah < suraEndAyahNumber ? colors.accent : colors.textSecondary
+              }
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Mistake Modal */}

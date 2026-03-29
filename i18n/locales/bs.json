@@ -50,7 +50,13 @@
     "ayah": "Ajet",
     "of": "od",
     "mistakesCount": "Greške",
-    "addNote": "Dodaj bilješku..."
+    "addNote": "Dodaj bilješku...",
+    "reciter": "Učač",
+    "listenToRecitation": "Slušaj učenje",
+    "play": "Pusti",
+    "pause": "Pauziraj",
+    "audioComingSoon": "Uskoro",
+    "audioComingSoonMessage": "Audio reprodukcija će biti dostupna u budućem ažuriranju."
   },
   "modal": {
     "selectPage": "Odaberi stranicu",
@@ -66,7 +72,8 @@
   "quranPage": {
     "juz": "Džuz",
     "page": "Stranica",
-    "surah": "Sura"
+    "surah": "Sura",
+    "loadingTranslation": "Učitavanje prijevoda..."
   },
   "common": {
     "loading": "Učitavanje...",
